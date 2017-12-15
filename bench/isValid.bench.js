@@ -3,7 +3,7 @@
 var argv = require('minimist')(process.argv.slice(2));
 if (!argv.iterations || !argv.concurrency) {
   console.error('Please provide desired iterations, concurrency');
-  console.error('Example: \nnode bench/hello_async.bench.js --iterations 50 --concurrency 10');
+  console.error('Example: \nnode bench/isValid.bench.js --iterations 50 --concurrency 10');
   process.exit(1);
 }
 
@@ -22,7 +22,7 @@ var queue = d3_queue.queue();
 var runs = 0;
 
 function run(cb) {
-  module.helloAsync({ louder: false }, function(err, result) {
+  module.isValid({ louder: false }, function(err, result) {
       if (err) {
         return cb(err);
       }
