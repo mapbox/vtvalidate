@@ -57,13 +57,13 @@ std::string do_expensive_work(bool louder) {
     return result;
 }
 
-  // This is the worker running asynchronously and calling a user-provided
-  // callback when done.
-  // Consider storing all C++ objects you need by value or by shared_ptr to keep
-  // them alive until done.
-  // Nan AsyncWorker docs:
-  // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-  struct AsyncHelloWorker : Nan::AsyncWorker {
+// This is the worker running asynchronously and calling a user-provided
+// callback when done.
+// Consider storing all C++ objects you need by value or by shared_ptr to keep
+// them alive until done.
+// Nan AsyncWorker docs:
+// https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
+struct AsyncHelloWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
     AsyncHelloWorker(bool louder, Nan::Callback* cb)
@@ -102,10 +102,9 @@ std::string do_expensive_work(bool louder) {
 
     std::string result_;
     const bool louder_;
-  };
+};
 
-
-  NAN_METHOD(isValid) {
+NAN_METHOD(isValid) {
 
     bool louder = false;
 
@@ -146,5 +145,5 @@ std::string do_expensive_work(bool louder) {
     // the pointer automatically.
     auto* worker = new AsyncHelloWorker{louder, new Nan::Callback{callback}};
     Nan::AsyncQueueWorker(worker);
-  }
 }
+} // namespace VectorTileValidate

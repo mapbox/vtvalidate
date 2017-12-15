@@ -4,5 +4,5 @@
 // quotes, ex: "hello.hpp" --> look for header in location relative to this file
 
 namespace VectorTileValidate {
-  NAN_METHOD(isValid);
+NAN_METHOD(isValid);
 }
