@@ -1,5 +1,5 @@
-#include "hello_async.hpp"
-#include "../module_utils.hpp"
+#include "vtvalidate.hpp"
+#include "utils.hpp"
 
 #include <exception>
 #include <iostream>
@@ -22,12 +22,7 @@
  * });
  */
 
-// If this was not defined within a namespace, it would be in the global scope.
-// Namespaces are used because C++ has no notion of scoped modules, so all of
-// the code you write in any file could conflict with other code.
-// Namespaces are generally a great idea in C++ because it helps scale and
-// clearly organize your application.
-namespace standalone_async {
+namespace VectorTileValidate {
 
 // Expensive allocation of std::map, querying, and string comparison,
 // therefore threads are busy
@@ -62,13 +57,13 @@ std::string do_expensive_work(bool louder) {
     return result;
 }
 
-// This is the worker running asynchronously and calling a user-provided
-// callback when done.
-// Consider storing all C++ objects you need by value or by shared_ptr to keep
-// them alive until done.
-// Nan AsyncWorker docs:
-// https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-struct AsyncHelloWorker : Nan::AsyncWorker {
+  // This is the worker running asynchronously and calling a user-provided
+  // callback when done.
+  // Consider storing all C++ objects you need by value or by shared_ptr to keep
+  // them alive until done.
+  // Nan AsyncWorker docs:
+  // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
+  struct AsyncHelloWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
     AsyncHelloWorker(bool louder, Nan::Callback* cb)
@@ -107,12 +102,10 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
 
     std::string result_;
     const bool louder_;
-};
+  };
 
-// helloAsync is a "standalone function" because it's not a class.
-// If this function was not defined within a namespace ("standalone_async"
-// specified above), it would be in the global scope.
-NAN_METHOD(helloAsync) {
+
+  NAN_METHOD(isValid) {
 
     bool louder = false;
 
@@ -153,6 +146,5 @@ NAN_METHOD(helloAsync) {
     // the pointer automatically.
     auto* worker = new AsyncHelloWorker{louder, new Nan::Callback{callback}};
     Nan::AsyncQueueWorker(worker);
+  }
 }
-
-} // namespace standalone_async
