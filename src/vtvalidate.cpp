@@ -58,16 +58,14 @@ std::string parseTile(vtzero::vector_tile tile) {
 
     try {
         while (auto layer = tile.next_layer()) {
-            while (auto feature = layer.next_feature()) {  
+            while (auto feature = layer.next_feature()) {
 
                 // Detect geomtype of feature
                 geom_handler handler;
-                vtzero::decode_geometry(feature.geometry(), handler); 
+                vtzero::decode_geometry(feature.geometry(), handler);
             }
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
 
         return result;
     }
