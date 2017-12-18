@@ -5,53 +5,17 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
-
-/**
- * This is an asynchronous standalone function that logs a string.
- * @name helloAsync
- * @param {Object} args - different ways to alter the string
- * @param {boolean} args.louder - adds exclamation points to the string
- * @param {Function} callback - from whence the hello comes, returns a string
- * @returns {string}
- * @example
- * var module = require('./path/to/lib/index.js');
- * module.helloAsync({ louder: true }, function(err, result) {
- *   if (err) throw err;
- *   console.log(result); // => "...threads are busy async bees...hello
- * world!!!!"
- * });
- */
+#include <vtzero/vector_tile.hpp>
 
 namespace VectorTileValidate {
 
 // Expensive allocation of std::map, querying, and string comparison,
 // therefore threads are busy
-std::string do_expensive_work(bool louder) {
-
-    std::map<std::size_t, std::string> container;
-    std::size_t work_to_do = 100000;
-
-    for (std::size_t i = 0; i < work_to_do; ++i) {
-        container.emplace(i, std::to_string(i));
-    }
-
-    for (std::size_t i = 0; i < work_to_do; ++i) {
-        std::string const& item = container[i];
-        if (item != std::to_string(i)) {
-
-            // AsyncHelloWorker's Execute function will take care of this error
-            // and return it to js-world via callback
-            // Marked NOLINT to avoid clang-tidy cert-err60-cpp error which we cannot
-            // avoid on some linux distros where std::runtime_error is not properly
-            // marked noexcept. Details at https://www.securecoding.cert.org/confluence/display/cplusplus/ERR60-CPP.+Exception+objects+must+be+nothrow+copy+constructible
-            throw std::runtime_error("Uh oh, this should never happen"); // NOLINT
-        }
-    }
-
-    std::string result = "...threads are busy async bees...hello world";
-
-    if (louder) {
-        result += "!!!!";
+std::string parseTile(vtzero::vector_tile tile) {
+    std::string result = "true";
+    // Iterate through layers/features/geoms of tile
+    while (auto layer = tile.next_layer()) {
+        continue;
     }
 
     return result;
@@ -66,8 +30,8 @@ std::string do_expensive_work(bool louder) {
 struct AsyncHelloWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
-    AsyncHelloWorker(bool louder, Nan::Callback* cb)
-        : Base(cb), result_{""}, louder_{louder} {}
+    AsyncHelloWorker(vtzero::vector_tile tile, Nan::Callback* cb)
+        : Base(cb), result_{""}, tile_{tile} {}
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.
@@ -76,7 +40,10 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disasterous
         try {
-            result_ = do_expensive_work(louder_);
+            // What if tile is gzipped? Does std::string still make sense for the buffer param?
+            result_ = parseTile(tile_);
+            // If valid, result will = true
+            // else result will = false
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -101,12 +68,10 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
     }
 
     std::string result_;
-    const bool louder_;
+    vtzero::vector_tile tile_;
 };
 
 NAN_METHOD(isValid) {
-
-    bool louder = false;
 
     // Check second argument, should be a 'callback' function.
     // This allows us to set the callback so we can use it to return errors
@@ -118,24 +83,23 @@ NAN_METHOD(isValid) {
     }
     v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
-    // Check first argument, should be an 'options' object
-    if (!info[0]->IsObject()) {
-        return utils::CallbackError("first arg 'options' must be an object",
-                                    callback);
+    // BUFFER: check first argument, should be a pbf object
+    v8::Local<v8::Value> buffer_val = info[0];
+    if (buffer_val->IsNull() ||
+        buffer_val->IsUndefined()) {
+        utils::CallbackError("first arg is empty", callback);
+        return;
     }
-    v8::Local<v8::Object> options = info[0].As<v8::Object>();
+    v8::Local<v8::Object> buffer = buffer_val->ToObject();
 
-    // Check options object for the "louder" property, which should be a boolean
-    // value
-    if (options->Has(Nan::New("louder").ToLocalChecked())) {
-        v8::Local<v8::Value> louder_val =
-            options->Get(Nan::New("louder").ToLocalChecked());
-        if (!louder_val->IsBoolean()) {
-            return utils::CallbackError("option 'louder' must be a boolean",
-                                        callback);
-        }
-        louder = louder_val->BooleanValue();
+    if (buffer->IsNull() ||
+        buffer->IsUndefined() ||
+        !node::Buffer::HasInstance(buffer)) {
+        utils::CallbackError("first arg 'buffer' must be a Protobuf buffer object", callback);
+        return;
     }
+
+    vtzero::vector_tile tile{node::Buffer::Data(buffer), node::Buffer::Length(buffer)};
 
     // Creates a worker instance and queues it to run asynchronously, invoking the
     // callback when done.
@@ -143,7 +107,7 @@ NAN_METHOD(isValid) {
     // pointer automatically.
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
-    auto* worker = new AsyncHelloWorker{louder, new Nan::Callback{callback}};
+    auto* worker = new AsyncHelloWorker{tile, new Nan::Callback{callback}};
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate
