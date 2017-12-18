@@ -9,15 +9,70 @@
 
 namespace VectorTileValidate {
 
+struct geom_handler {
+
+    std::vector<vtzero::point> point_data{};
+    std::vector<std::vector<vtzero::point>> line_data{};
+
+    void points_begin(uint32_t count) {
+        point_data.reserve(count);
+    }
+
+    void points_point(const vtzero::point point) {
+        point_data.push_back(point);
+    }
+
+    void points_end() const noexcept {
+    }
+
+    void linestring_begin(uint32_t count) {
+        line_data.emplace_back();
+        line_data.back().reserve(count);
+    }
+
+    void linestring_point(const vtzero::point point) {
+        line_data.back().push_back(point);
+    }
+
+    void linestring_end() const noexcept {
+    }
+
+    void ring_begin(uint32_t count) {
+        line_data.emplace_back();
+        line_data.back().reserve(count);
+    }
+
+    void ring_point(const vtzero::point point) {
+        line_data.back().push_back(point);
+    }
+
+    void ring_end(vtzero::ring_type /*dummy*/) const noexcept {
+    }
+
+}; // struct geom_handler
+
 // Expensive allocation of std::map, querying, and string comparison,
 // therefore threads are busy
 std::string parseTile(vtzero::vector_tile tile) {
-    std::string result = "true";
-    // Iterate through layers/features/geoms of tile
-    while (auto layer = tile.next_layer()) {
-        continue;
+    std::string result = "false";
+
+    try {
+        while (auto layer = tile.next_layer()) {
+            while (auto feature = layer.next_feature()) {  
+
+                // Detect geomtype of feature
+                geom_handler handler;
+                vtzero::decode_geometry(feature.geometry(), handler); 
+            }
+        }
+    }
+    catch (std::exception const& ex)
+    {
+
+        return result;
     }
 
+    result = "true";
     return result;
 }
 
@@ -42,8 +97,6 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
         try {
             // What if tile is gzipped? Does std::string still make sense for the buffer param?
             result_ = parseTile(tile_);
-            // If valid, result will = true
-            // else result will = false
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
