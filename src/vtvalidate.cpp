@@ -32,9 +32,10 @@ struct geom_handler {
 }; // struct geom_handler
 
 
-std::string parseTile(vtzero::vector_tile tile) {
+std::string parseTile(vtzero::data_view const& buffer) {
     std::string result;
 
+    vtzero::vector_tile tile{buffer};
     try {
         while (auto layer = tile.next_layer()) {
             while (auto feature = layer.next_feature()) {
@@ -62,21 +63,20 @@ std::string parseTile(vtzero::vector_tile tile) {
 struct AsyncValidateWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
-    AsyncValidateWorker(v8::Local<v8::Object> buffer, Nan::Callback* cb)
+    AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
         : Base(cb), 
         result_{""},
         data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
-        tile_(buffer) {}
+        keep_alive_(buffer) {}
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.
     // - You do not have access to Javascript v8 objects here.
     void Execute() override {
         // The try/catch is critical here: if code was added that could throw an
-        // unhandled error INSIDE the threadpool, it would be disasterous
+        // unhandled error INSIDE the threadpool, it would be disastrous
         try {
-            vtzero::vector_tile tile{data};
-            result_ = parseTile(tile);
+            result_ = parseTile(data);
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -103,12 +103,14 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     // explicitly use the destructor to clean up
     // the persistent tile ref by Reset()-ing
     ~AsyncValidateWorker() {
-        tile_.Reset();
+        keep_alive_.Reset();
     }
 
     std::string result_;
     vtzero::data_view data;
-    Nan::Persistent<v8::Object> tile_;
+    // TODO(@flippmoke): research whether Nan::Global would be a better choice to avoid
+    // the need to manually call Reset()
+    Nan::Persistent<v8::Object> keep_alive_;
 };
 
 NAN_METHOD(isValid) {
@@ -146,7 +148,9 @@ NAN_METHOD(isValid) {
     // pointer automatically.
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
+    // TODO (@flippmoke): use unique_ptr here instead of a raw pointer?
     auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
+
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate
