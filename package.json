@@ -30,6 +30,9 @@
     "d3-queue": "^3.0.1",
     "minimist": "~1.2.0"
   },
+  "bin": {
+    "vtvalidate": "./bin/vtvalidate.js"
+  },
   "binary": {
     "module_name": "module",
     "module_path": "./lib/binding/",
