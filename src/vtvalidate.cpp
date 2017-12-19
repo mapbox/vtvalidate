@@ -51,8 +51,7 @@ struct geom_handler {
 
 }; // struct geom_handler
 
-// Expensive allocation of std::map, querying, and string comparison,
-// therefore threads are busy
+
 std::string parseTile(vtzero::vector_tile tile) {
     std::string result = "false";
 
@@ -80,11 +79,16 @@ std::string parseTile(vtzero::vector_tile tile) {
 // them alive until done.
 // Nan AsyncWorker docs:
 // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-struct AsyncHelloWorker : Nan::AsyncWorker {
+struct AsyncValidateWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
-    AsyncHelloWorker(vtzero::vector_tile tile, Nan::Callback* cb)
-        : Base(cb), result_{""}, tile_{tile} {}
+    AsyncValidateWorker(v8::Local<v8::Object> buffer, Nan::Callback* cb)
+        : Base(cb), 
+        result_{""},
+        data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)), 
+        tile_() {
+            tile_.Reset(buffer.As<v8::Object>());
+        }
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.
@@ -93,8 +97,8 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disasterous
         try {
-            // What if tile is gzipped? Does std::string still make sense for the buffer param?
-            result_ = parseTile(tile_);
+            vtzero::vector_tile tile{data};
+            result_ = parseTile(tile);
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -118,8 +122,15 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
         callback->Call(argc, static_cast<v8::Local<v8::Value>*>(argv));
     }
 
+    // explicitly use the destructor to clean up
+    // the persistent tile ref by Reset()-ing
+    ~AsyncValidateWorker() {
+        tile_.Reset();
+    }
+
     std::string result_;
-    vtzero::vector_tile tile_;
+    vtzero::data_view data;
+    Nan::Persistent<v8::Object> tile_;
 };
 
 NAN_METHOD(isValid) {
@@ -141,16 +152,15 @@ NAN_METHOD(isValid) {
         utils::CallbackError("first arg is empty", callback);
         return;
     }
+
     v8::Local<v8::Object> buffer = buffer_val->ToObject();
 
     if (buffer->IsNull() ||
         buffer->IsUndefined() ||
         !node::Buffer::HasInstance(buffer)) {
-        utils::CallbackError("first arg 'buffer' must be a Protobuf buffer object", callback);
+        utils::CallbackError("first arg 'buffer' must be a Protobuf object", callback);
         return;
     }
-
-    vtzero::vector_tile tile{node::Buffer::Data(buffer), node::Buffer::Length(buffer)};
 
     // Creates a worker instance and queues it to run asynchronously, invoking the
     // callback when done.
@@ -158,7 +168,7 @@ NAN_METHOD(isValid) {
     // pointer automatically.
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
-    auto* worker = new AsyncHelloWorker{tile, new Nan::Callback{callback}};
+    auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate
