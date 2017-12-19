@@ -31,7 +31,6 @@ struct geom_handler {
 
 }; // struct geom_handler
 
-
 std::string parseTile(vtzero::data_view const& buffer) {
     std::string result;
 
@@ -39,10 +38,42 @@ std::string parseTile(vtzero::data_view const& buffer) {
     try {
         while (auto layer = tile.next_layer()) {
             while (auto feature = layer.next_feature()) {
-
-                // Detect geomtype of feature
+                // Detect geomtype of feature and decode
                 geom_handler handler;
                 vtzero::decode_geometry(feature.geometry(), handler);
+
+                feature.reset_property(); // restart the property iterator from the beginning
+                feature.for_each_property([&](vtzero::property const& p) {
+                    p.key();
+                    auto value = p.value();
+                    switch (value.type()) {
+                    case vtzero::property_value_type::string_value:
+                        value.string_value();
+                        break;
+                    case vtzero::property_value_type::float_value:
+                        value.float_value();
+                        break;
+                    case vtzero::property_value_type::double_value:
+                        value.double_value();
+                        break;
+                    case vtzero::property_value_type::int_value:
+                        value.int_value();
+                        break;
+                    case vtzero::property_value_type::uint_value:
+                        value.uint_value();
+                        break;
+                    case vtzero::property_value_type::sint_value:
+                        value.sint_value();
+                        break;
+                    case vtzero::property_value_type::bool_value:
+                        value.bool_value();
+                        break;
+                    default:
+                        throw std::runtime_error("Invalid property value type");
+                    }
+                    return true; // continue to next property
+
+                });
             }
         }
     } catch (std::exception const& ex) {
@@ -64,10 +95,10 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
     AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
-        : Base(cb), 
-        result_{""},
-        data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
-        keep_alive_(buffer) {}
+        : Base(cb),
+          result_{""},
+          data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
+          keep_alive_(buffer) {}
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.

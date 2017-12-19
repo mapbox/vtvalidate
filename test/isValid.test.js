@@ -20,3 +20,183 @@ test('success: invalid tile', function(t) {
     t.end();
   });
 });
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('004').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'Missing geometry field in feature (spec 4.2)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('005').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unpaired property key/value indexes (spec 4.4)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('006').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'Unknown geometry type (spec 4.3.4)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('007').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown field in layer (tag=15, type=2)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('008').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown field in layer (tag=5, type=2)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('009').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown geometry type'); // This passes as "valid"
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('010').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown geometry type'); // This passes as "valid"
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('011').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'index out of range: 1');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('012').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown vector tile version: 99');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('013').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown field in layer (tag=3, type=0)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('014').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'missing name field in layer (spec 4.1)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('015').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown geometry type'); // This passes as "valid"
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('023').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'missing name field in layer (spec 4.1)');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('024').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown geometry type'); // This passes as "valid"
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('026').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'unknown geometry type'); // This passes as "valid"
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('030').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'Feature has more than one geometry field');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('040').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'index out of range: 2');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('041').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'index out of range: 106');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('042').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'index out of range: 2');
+    t.end();
+  });
+});
+
+test('success: invalid tile', function(t) {
+  var buffer = mvtf.get('044').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'expected command 1 but got 7');
+    t.end();
+  });
+});
