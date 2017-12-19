@@ -16,25 +16,7 @@ test('success: invalid tile', function(t) {
   var buffer = mvtf.get('003').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
-    t.equal(result, 'false');
+    t.equal(result, 'unknown geometry type');
     t.end();
   });
 });
-
-// test('success: catch invalid tile when parsing in vtzero', function(t) {
-//   var buffer = fs.readFileSync(__dirname + '/funky1.mvt');
-//   module.isValid(buffer, function(err, result) {
-//     if (err) throw err;
-//     t.equal(result, 'false');
-//     t.end();
-//   });
-// });
-
-// test('success: catch invalid tile when parsing in vtzero', function(t) {
-//   var buffer = fs.readFileSync(__dirname + '/funky2.mvt');
-//   module.isValid(buffer, function(err, result) {
-//     if (err) throw err;
-//     t.equal(result, 'false');
-//     t.end();
-//   });
-// });

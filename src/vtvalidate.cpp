@@ -11,49 +11,29 @@ namespace VectorTileValidate {
 
 struct geom_handler {
 
-    std::vector<vtzero::point> point_data{};
-    std::vector<std::vector<vtzero::point>> line_data{};
+    void points_begin(uint32_t /*dummy*/) {}
 
-    void points_begin(uint32_t count) {
-        point_data.reserve(count);
-    }
+    void points_point(const vtzero::point /*dummy*/) {}
 
-    void points_point(const vtzero::point point) {
-        point_data.push_back(point);
-    }
+    void points_end() const noexcept {}
 
-    void points_end() const noexcept {
-    }
+    void linestring_begin(uint32_t /*dummy*/) {}
 
-    void linestring_begin(uint32_t count) {
-        line_data.emplace_back();
-        line_data.back().reserve(count);
-    }
+    void linestring_point(const vtzero::point /*dummy*/) {}
 
-    void linestring_point(const vtzero::point point) {
-        line_data.back().push_back(point);
-    }
+    void linestring_end() const noexcept {}
 
-    void linestring_end() const noexcept {
-    }
+    void ring_begin(uint32_t /*dummy*/) {}
 
-    void ring_begin(uint32_t count) {
-        line_data.emplace_back();
-        line_data.back().reserve(count);
-    }
+    void ring_point(const vtzero::point /*dummy*/) {}
 
-    void ring_point(const vtzero::point point) {
-        line_data.back().push_back(point);
-    }
-
-    void ring_end(vtzero::ring_type /*dummy*/) const noexcept {
-    }
+    void ring_end(vtzero::ring_type /*dummy*/) const noexcept {}
 
 }; // struct geom_handler
 
 
 std::string parseTile(vtzero::vector_tile tile) {
-    std::string result = "false";
+    std::string result;
 
     try {
         while (auto layer = tile.next_layer()) {
@@ -65,7 +45,7 @@ std::string parseTile(vtzero::vector_tile tile) {
             }
         }
     } catch (std::exception const& ex) {
-
+        result = ex.what();
         return result;
     }
 
@@ -85,10 +65,8 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     AsyncValidateWorker(v8::Local<v8::Object> buffer, Nan::Callback* cb)
         : Base(cb), 
         result_{""},
-        data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)), 
-        tile_() {
-            tile_.Reset(buffer.As<v8::Object>());
-        }
+        data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
+        tile_(buffer) {}
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.
