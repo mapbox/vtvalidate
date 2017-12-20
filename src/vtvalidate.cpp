@@ -5,55 +5,82 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
-
-/**
- * This is an asynchronous standalone function that logs a string.
- * @name helloAsync
- * @param {Object} args - different ways to alter the string
- * @param {boolean} args.louder - adds exclamation points to the string
- * @param {Function} callback - from whence the hello comes, returns a string
- * @returns {string}
- * @example
- * var module = require('./path/to/lib/index.js');
- * module.helloAsync({ louder: true }, function(err, result) {
- *   if (err) throw err;
- *   console.log(result); // => "...threads are busy async bees...hello
- * world!!!!"
- * });
- */
+#include <vtzero/vector_tile.hpp>
 
 namespace VectorTileValidate {
 
-// Expensive allocation of std::map, querying, and string comparison,
-// therefore threads are busy
-std::string do_expensive_work(bool louder) {
+struct geom_handler {
 
-    std::map<std::size_t, std::string> container;
-    std::size_t work_to_do = 100000;
+    void points_begin(uint32_t /*dummy*/) {}
 
-    for (std::size_t i = 0; i < work_to_do; ++i) {
-        container.emplace(i, std::to_string(i));
-    }
+    void points_point(const vtzero::point /*dummy*/) {}
 
-    for (std::size_t i = 0; i < work_to_do; ++i) {
-        std::string const& item = container[i];
-        if (item != std::to_string(i)) {
+    void points_end() const noexcept {}
 
-            // AsyncHelloWorker's Execute function will take care of this error
-            // and return it to js-world via callback
-            // Marked NOLINT to avoid clang-tidy cert-err60-cpp error which we cannot
-            // avoid on some linux distros where std::runtime_error is not properly
-            // marked noexcept. Details at https://www.securecoding.cert.org/confluence/display/cplusplus/ERR60-CPP.+Exception+objects+must+be+nothrow+copy+constructible
-            throw std::runtime_error("Uh oh, this should never happen"); // NOLINT
+    void linestring_begin(uint32_t /*dummy*/) {}
+
+    void linestring_point(const vtzero::point /*dummy*/) {}
+
+    void linestring_end() const noexcept {}
+
+    void ring_begin(uint32_t /*dummy*/) {}
+
+    void ring_point(const vtzero::point /*dummy*/) {}
+
+    void ring_end(vtzero::ring_type /*dummy*/) const noexcept {}
+
+}; // struct geom_handler
+
+std::string parseTile(vtzero::data_view const& buffer) {
+    std::string result;
+
+    vtzero::vector_tile tile{buffer};
+    try {
+        while (auto layer = tile.next_layer()) {
+            while (auto feature = layer.next_feature()) {
+                // Detect geomtype of feature and decode
+                geom_handler handler;
+                vtzero::decode_geometry(feature.geometry(), handler);
+
+                feature.for_each_property([&](vtzero::property const& p) {
+                    p.key();
+                    auto value = p.value();
+                    switch (value.type()) {
+                    case vtzero::property_value_type::string_value:
+                        value.string_value();
+                        break;
+                    case vtzero::property_value_type::float_value:
+                        value.float_value();
+                        break;
+                    case vtzero::property_value_type::double_value:
+                        value.double_value();
+                        break;
+                    case vtzero::property_value_type::int_value:
+                        value.int_value();
+                        break;
+                    case vtzero::property_value_type::uint_value:
+                        value.uint_value();
+                        break;
+                    case vtzero::property_value_type::sint_value:
+                        value.sint_value();
+                        break;
+                    case vtzero::property_value_type::bool_value:
+                        value.bool_value();
+                        break;
+                    default:
+                        throw std::runtime_error("Invalid property value type");
+                    }
+                    return true; // continue to next property
+
+                });
+            }
         }
+    } catch (std::exception const& ex) {
+        result = ex.what();
+        return result;
     }
 
-    std::string result = "...threads are busy async bees...hello world";
-
-    if (louder) {
-        result += "!!!!";
-    }
-
+    result = "";
     return result;
 }
 
@@ -63,20 +90,23 @@ std::string do_expensive_work(bool louder) {
 // them alive until done.
 // Nan AsyncWorker docs:
 // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-struct AsyncHelloWorker : Nan::AsyncWorker {
+struct AsyncValidateWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
 
-    AsyncHelloWorker(bool louder, Nan::Callback* cb)
-        : Base(cb), result_{""}, louder_{louder} {}
+    AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
+        : Base(cb),
+          result_{""},
+          data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
+          keep_alive_(buffer) {}
 
     // The Execute() function is getting called when the worker starts to run.
     // - You only have access to member variables stored in this worker.
     // - You do not have access to Javascript v8 objects here.
     void Execute() override {
         // The try/catch is critical here: if code was added that could throw an
-        // unhandled error INSIDE the threadpool, it would be disasterous
+        // unhandled error INSIDE the threadpool, it would be disastrous
         try {
-            result_ = do_expensive_work(louder_);
+            result_ = parseTile(data);
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -100,13 +130,20 @@ struct AsyncHelloWorker : Nan::AsyncWorker {
         callback->Call(argc, static_cast<v8::Local<v8::Value>*>(argv));
     }
 
+    // explicitly use the destructor to clean up
+    // the persistent tile ref by Reset()-ing
+    ~AsyncValidateWorker() {
+        keep_alive_.Reset();
+    }
+
     std::string result_;
-    const bool louder_;
+    vtzero::data_view data;
+    // TODO(@flippmoke): research whether Nan::Global would be a better choice to avoid
+    // the need to manually call Reset()
+    Nan::Persistent<v8::Object> keep_alive_;
 };
 
 NAN_METHOD(isValid) {
-
-    bool louder = false;
 
     // Check second argument, should be a 'callback' function.
     // This allows us to set the callback so we can use it to return errors
@@ -114,27 +151,25 @@ NAN_METHOD(isValid) {
     // Also, "info" comes from the NAN_METHOD macro, which returns differently
     // according to the version of node
     if (!info[1]->IsFunction()) {
-        return Nan::ThrowTypeError("second arg 'callback' must be a function");
+        return Nan::ThrowTypeError("second arg \"callback\" must be a function");
     }
     v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
-    // Check first argument, should be an 'options' object
-    if (!info[0]->IsObject()) {
-        return utils::CallbackError("first arg 'options' must be an object",
-                                    callback);
+    // BUFFER: check first argument, should be a pbf object
+    v8::Local<v8::Value> buffer_val = info[0];
+    if (buffer_val->IsNull() ||
+        buffer_val->IsUndefined()) {
+        utils::CallbackError("first arg is empty", callback);
+        return;
     }
-    v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
-    // Check options object for the "louder" property, which should be a boolean
-    // value
-    if (options->Has(Nan::New("louder").ToLocalChecked())) {
-        v8::Local<v8::Value> louder_val =
-            options->Get(Nan::New("louder").ToLocalChecked());
-        if (!louder_val->IsBoolean()) {
-            return utils::CallbackError("option 'louder' must be a boolean",
-                                        callback);
-        }
-        louder = louder_val->BooleanValue();
+    v8::Local<v8::Object> buffer = buffer_val->ToObject();
+
+    if (buffer->IsNull() ||
+        buffer->IsUndefined() ||
+        !node::Buffer::HasInstance(buffer)) {
+        utils::CallbackError("first arg \"buffer\" must be a Protobuf object", callback);
+        return;
     }
 
     // Creates a worker instance and queues it to run asynchronously, invoking the
@@ -143,7 +178,9 @@ NAN_METHOD(isValid) {
     // pointer automatically.
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
-    auto* worker = new AsyncHelloWorker{louder, new Nan::Callback{callback}};
+    // TODO (@flippmoke): use unique_ptr here instead of a raw pointer?
+    auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
+
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate

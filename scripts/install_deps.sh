@@ -12,4 +12,5 @@ function install() {
 ./scripts/setup.sh --config local.env
 source local.env
 
-install protozero 1.5.1
+install protozero 1.6.1
+install vtzero f6efb8e
