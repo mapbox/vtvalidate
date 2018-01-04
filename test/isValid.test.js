@@ -29,6 +29,15 @@ test('success: valid linestring', function(t) {
   });
 });
 
+test('success: valid ring', function(t) {
+  var buffer = mvtf.get('022').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
 test('failure: invalid arg type', function(t) {
   module.isValid('woops', function(err, result) {
     t.ok(err)
