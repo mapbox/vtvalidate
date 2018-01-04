@@ -67,10 +67,10 @@ std::string parseTile(vtzero::data_view const& buffer) {
                     case vtzero::property_value_type::bool_value:
                         value.bool_value();
                         break;
-                    // LCOV_EXCL_START 
+                    // LCOV_EXCL_START
                     default:
                         throw std::runtime_error("Invalid property value type"); // this can never happen, since vtzero handles the error earlier
-                    // LCOV_EXCL_STOP
+                        // LCOV_EXCL_STOP
                     }
                     return true; // continue to next property
 
