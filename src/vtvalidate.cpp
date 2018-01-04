@@ -41,7 +41,7 @@ std::string parseTile(vtzero::data_view const& buffer) {
                 // Detect geomtype of feature and decode
                 geom_handler handler;
                 vtzero::decode_geometry(feature.geometry(), handler);
-
+                // LCOV_EXCL_START 
                 feature.for_each_property([&](vtzero::property const& p) {
                     p.key();
                     auto value = p.value();
@@ -68,11 +68,12 @@ std::string parseTile(vtzero::data_view const& buffer) {
                         value.bool_value();
                         break;
                     default:
-                        throw std::runtime_error("Invalid property value type");
+                        throw std::runtime_error("Invalid property value type"); // this can never happen, since vtzero handles the error earlier
                     }
                     return true; // continue to next property
 
                 });
+                // LCOV_EXCL_STOP
             }
         }
     } catch (std::exception const& ex) {
