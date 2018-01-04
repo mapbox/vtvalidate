@@ -46,6 +46,15 @@ test('failure: missing callback', function(t) {
   }
 });
 
+test('success: all property types', function(t) {
+  var buffer = mvtf.get('038').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
 test('success: invalid tile', function(t) {
   var buffer = mvtf.get('003').buffer;
   module.isValid(buffer, function(err, result) {
