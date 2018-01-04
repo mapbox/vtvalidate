@@ -55,3 +55,9 @@ vtvalidate.isValid(buffer, function(err, result) {
   console.log(result); // 'Missing geometry field in feature (spec 4.2)'
 });
 ```
+
+## Bench
+Provide desired iterations and concurrency
+```
+node bench/isValid.bench.js --iterations 50 --concurrency 10
+```
