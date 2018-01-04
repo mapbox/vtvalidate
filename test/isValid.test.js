@@ -11,6 +11,24 @@ test('success: valid tile', function(t) {
   });
 });
 
+test('success: all property types', function(t) {
+  var buffer = mvtf.get('038').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
+test('success: valid linestring', function(t) {
+  var buffer = mvtf.get('018').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
 test('failure: invalid arg type', function(t) {
   module.isValid('woops', function(err, result) {
     t.ok(err)
@@ -44,15 +62,6 @@ test('failure: missing callback', function(t) {
     t.equal(err.message, 'second arg \"callback\" must be a function');
     t.end();
   }
-});
-
-test('success: all property types', function(t) {
-  var buffer = mvtf.get('038').buffer;
-  module.isValid(buffer, function(err, result) {
-    if (err) throw err;
-    t.equal(result, '');
-    t.end();
-  });
 });
 
 test('success: invalid tile', function(t) {
