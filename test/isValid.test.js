@@ -11,6 +11,33 @@ test('success: valid tile', function(t) {
   });
 });
 
+test('success: all property types', function(t) {
+  var buffer = mvtf.get('038').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
+test('success: valid linestring', function(t) {
+  var buffer = mvtf.get('018').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
+test('success: valid ring', function(t) {
+  var buffer = mvtf.get('022').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
 test('failure: invalid arg type', function(t) {
   module.isValid('woops', function(err, result) {
     t.ok(err)
@@ -104,7 +131,7 @@ test('success: invalid tile', function(t) {
   var buffer = mvtf.get('011').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
-    t.equal(result, 'index out of range: 1');
+    t.equal(result, 'illegal property value type');
     t.end();
   });
 });
