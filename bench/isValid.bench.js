@@ -4,7 +4,7 @@ var argv = require('minimist')(process.argv.slice(2));
 if (!argv.iterations || !argv.concurrency) {
   console.error('Please provide desired iterations, concurrency');
   console.error('Example: \n\tnode bench/isValid.bench.js --iterations 50 --concurrency 10');
-  console.error('Optional args: \n\t--mem (reports memory stats)')
+  console.error('Optional args: \n\t--mem (reports memory stats)');
   process.exit(1);
 }
 
@@ -93,7 +93,7 @@ var start = function(files){
       console.log('Benchmark speed: ' + rate.toFixed(0) + ' runs/s (runs: ' + runs + ' ms: ' + time + ' )');
 
       if (track_mem) {
-        console.log('Benchmark peak mem: ', bytes(memstats.max_rss), bytes(memstats.max_heap), bytes(memstats.max_heap_total));
+        console.log('Benchmark peak mem (max_rss, max_heap, max_heap_total): ', bytes(memstats.max_rss), bytes(memstats.max_heap), bytes(memstats.max_heap_total));
       } else {
         console.log('Note: pass --mem to track memory usage');
       }
