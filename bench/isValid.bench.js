@@ -3,7 +3,8 @@
 var argv = require('minimist')(process.argv.slice(2));
 if (!argv.iterations || !argv.concurrency) {
   console.error('Please provide desired iterations, concurrency');
-  console.error('Example: \nnode bench/isValid.bench.js --iterations 50 --concurrency 10');
+  console.error('Example: \n\tnode bench/isValid.bench.js --iterations 50 --concurrency 10');
+  console.error('Optional args: \n\t--mem (reports memory stats)')
   process.exit(1);
 }
 
