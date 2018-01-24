@@ -131,7 +131,7 @@ test('success: invalid tile', function(t) {
   var buffer = mvtf.get('011').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
-    t.equal(result, 'illegal property value type');
+    t.equal(result, 'index out of range: 1');
     t.end();
   });
 });
