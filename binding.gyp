@@ -63,8 +63,8 @@
       # This also is where the benefits of using a "glob" come into play...
       # See: https://github.com/mapbox/node-cpp-skel/pull/44#discussion_r122050205
       'sources': [ 
-        './src/module.cpp',
-        './src/vtvalidate.cpp'
+        './src/nan-init.cpp',
+        './src/vtvalidate-nan.cpp'
       ],
       'ldflags': [
         '-Wl,-z,now',

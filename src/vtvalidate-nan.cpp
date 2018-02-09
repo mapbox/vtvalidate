@@ -1,5 +1,5 @@
-#include "vtvalidate.hpp"
-#include "utils.hpp"
+#include "vtvalidate-nan.hpp"
+#include "vtvalidate-core.hpp"
 
 #include <exception>
 #include <iostream>
@@ -7,84 +7,7 @@
 #include <stdexcept>
 #include <vtzero/vector_tile.hpp>
 
-namespace VectorTileValidate {
-
-struct geom_handler {
-
-    void points_begin(uint32_t /*dummy*/) {}
-
-    void points_point(const vtzero::point /*dummy*/) {}
-
-    void points_end() const noexcept {}
-
-    void linestring_begin(uint32_t /*dummy*/) {}
-
-    void linestring_point(const vtzero::point /*dummy*/) {}
-
-    void linestring_end() const noexcept {}
-
-    void ring_begin(uint32_t /*dummy*/) {}
-
-    void ring_point(const vtzero::point /*dummy*/) {}
-
-    void ring_end(vtzero::ring_type /*dummy*/) const noexcept {}
-
-}; // struct geom_handler
-
-std::string parseTile(vtzero::data_view const& buffer) {
-    std::string result;
-
-    vtzero::vector_tile tile{buffer};
-    try {
-        while (auto layer = tile.next_layer()) {
-            while (auto feature = layer.next_feature()) {
-                // Detect geomtype of feature and decode
-                geom_handler handler;
-                vtzero::decode_geometry(feature.geometry(), handler);
-
-                feature.for_each_property([&](vtzero::property const& p) {
-                    p.key();
-                    auto value = p.value();
-                    switch (value.type()) {
-                    case vtzero::property_value_type::string_value:
-                        value.string_value();
-                        break;
-                    case vtzero::property_value_type::float_value:
-                        value.float_value();
-                        break;
-                    case vtzero::property_value_type::double_value:
-                        value.double_value();
-                        break;
-                    case vtzero::property_value_type::int_value:
-                        value.int_value();
-                        break;
-                    case vtzero::property_value_type::uint_value:
-                        value.uint_value();
-                        break;
-                    case vtzero::property_value_type::sint_value:
-                        value.sint_value();
-                        break;
-                    case vtzero::property_value_type::bool_value:
-                        value.bool_value();
-                        break;
-                    // LCOV_EXCL_START
-                    default:
-                        throw std::runtime_error("Invalid property value type"); // this can never happen, since vtzero handles the error earlier
-                        // LCOV_EXCL_STOP
-                    }
-                    return true; // continue to next property
-
-                });
-            }
-        }
-    } catch (std::exception const& ex) {
-        result = ex.what();
-        return result;
-    }
-
-    result = "";
-    return result;
-}
+namespace vtvalidate_nan {
 
 // This is the worker running asynchronously and calling a user-provided
 // callback when done.
@@ -108,9 +31,9 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disastrous
         try {
-            result_ = parseTile(data);
+            result_ = vtvalidate_core::parseTile(data);
         } catch (const std::exception& e) {
-            SetErrorMessage(e.what());
+            result_ = e.what();
         }
     }
 
@@ -145,6 +68,12 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     Nan::Persistent<v8::Object> keep_alive_;
 };
 
+void CallbackError(std::string message,
+                          v8::Local<v8::Function> callback) {
+    v8::Local<v8::Value> argv[1] = {Nan::Error(message.c_str())};
+    Nan::MakeCallback(Nan::GetCurrentContext()->Global(), callback, 1, argv);
+}
+
 NAN_METHOD(isValid) {
 
     // Check second argument, should be a 'callback' function.
@@ -161,7 +90,7 @@ NAN_METHOD(isValid) {
     v8::Local<v8::Value> buffer_val = info[0];
     if (buffer_val->IsNull() ||
         buffer_val->IsUndefined()) {
-        utils::CallbackError("first arg is empty", callback);
+        CallbackError("first arg is empty", callback);
         return;
     }
 
@@ -170,7 +99,7 @@ NAN_METHOD(isValid) {
     if (buffer->IsNull() ||
         buffer->IsUndefined() ||
         !node::Buffer::HasInstance(buffer)) {
-        utils::CallbackError("first arg \"buffer\" must be a Protobuf object", callback);
+        CallbackError("first arg \"buffer\" must be a Protobuf object", callback);
         return;
     }
 
@@ -185,4 +114,4 @@ NAN_METHOD(isValid) {
 
     Nan::AsyncQueueWorker(worker);
 }
-} // namespace VectorTileValidate
+} // namespace vtvalidate_nan
