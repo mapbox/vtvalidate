@@ -8,10 +8,9 @@
 namespace vtvalidate_wasm {
 
 EMSCRIPTEN_KEEPALIVE
-std::string isValid(std::string const& str)
-{
+std::string isValid(std::string const& str) {
     vtzero::data_view data(str);
     return vtvalidate_core::parseTile(data);
 }
 
-}
+} // namespace vtvalidate_wasm

@@ -22,7 +22,7 @@ struct geom_handler {
     void ring_end(vtzero::ring_type /*dummy*/) const noexcept {}
 };
 
-}
+} // namespace detail
 
 std::string parseTile(vtzero::data_view const& buffer) {
     std::string result;
