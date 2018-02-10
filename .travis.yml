@@ -39,6 +39,19 @@ script: []
 # run your tests and build binaries
 matrix:
   include:
+    # test wasm in node.js
+    - os: osx
+      osx_image: xcode8.3
+      env: BUILDTYPE=release
+      node_js: 9
+      before_script:
+        - ./build-wasm.sh
+        - cd html
+        # should print 'success ...'
+        - node wasm-validate.js ../node_modules/@mapbox/mvt-fixtures/real-world/chicago/13-2098-3045.mvt
+        # should print 'fail unknown geometry type ...'
+        - node wasm-validate.js ../node_modules/@mapbox/mvt-fixtures/fixtures/003/tile.mvt
+        - node compare.js
     # linux publishable node v4/release
     - os: linux
       env: BUILDTYPE=release
