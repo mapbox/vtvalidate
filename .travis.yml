@@ -40,7 +40,8 @@ script: []
 matrix:
   include:
     # test wasm in node.js
-    - os: linux
+    - os: osx
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 9
       before_script:
