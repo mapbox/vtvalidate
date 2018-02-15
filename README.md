@@ -61,8 +61,8 @@ vtvalidate.isValid(buffer, function(err, result) {
 node bin/vtvalidate.js <path-to-vector-tile>
 
   Will output:
-  - returns empty string if it's a valid tile
-  - returns string that specifies why the tile is invalid
+  - empty string if it's a valid tile
+  - string that specifies why the tile is invalid
 
 ```
 Accepts either uncompressed or gzip compressed tiles
