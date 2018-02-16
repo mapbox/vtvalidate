@@ -4,10 +4,10 @@ var exec = require('child_process').exec;
 var mvtf = require('@mapbox/mvt-fixtures');
 
 var validate = path.resolve(__dirname, '..', 'bin', 'vtvalidate.js');
-var fixtures = path.resolve(__dirname, '..', 'node_modules', '@mapbox', 'mvt-fixtures');
+var mvtfixtures = path.resolve(__dirname, '..', 'node_modules', '@mapbox', 'mvt-fixtures');
 
 test('success: valid uncompressed tile', function(t) {
-  var tile = fixtures + '/fixtures/043/tile.mvt';
+  var tile = mvtfixtures + '/fixtures/043/tile.mvt';
   var cmd = [ validate, tile ].join(' ');
 
   exec(cmd, function(err, stdout, stderr) {
@@ -18,7 +18,18 @@ test('success: valid uncompressed tile', function(t) {
 });
 
 test('success: valid gzip compressed tile', function(t) {
-  var tile = fixtures + '/real-world/compressed/14-9384-9577.mvt.gz';
+  var tile = mvtfixtures + '/real-world/compressed/14-9384-9577.mvt.gz';
+  var cmd = [ validate, tile ].join(' ');
+
+  exec(cmd, function(err, stdout, stderr) {
+    t.ifError(err, 'no error');
+    t.equal(stdout, '');
+    t.end();
+  });
+});
+
+test('success: valid zlib compressed tile', function(t) {
+  var tile = path.resolve(__dirname, 'fixtures', 'zlib-compressed');
   var cmd = [ validate, tile ].join(' ');
 
   exec(cmd, function(err, stdout, stderr) {
@@ -37,7 +48,7 @@ test('failure: missing tile arg', function(t) {
 });
 
 test('invalid filetype', function(t) {
-  var tile = fixtures + '/fixtures/043/info.json';
+  var tile = mvtfixtures + '/fixtures/043/info.json';
   var cmd = [ validate, tile ].join(' ');
 
   exec(cmd, function(err, stdout, stderr) {
@@ -59,7 +70,7 @@ test('invalid tile arg, not a filepath', function(t) {
 });
 
 test('invalid tile', function(t) {
-  var tile = fixtures + '/fixtures/003/tile.mvt';
+  var tile = mvtfixtures + '/fixtures/003/tile.mvt';
   var cmd = [ validate, tile ].join(' ');
 
   exec(cmd, function(err, stdout, stderr) {

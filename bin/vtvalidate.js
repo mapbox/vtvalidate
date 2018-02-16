@@ -23,9 +23,24 @@ if (!exists(input_tile)) {
 var validator = require('../');
 
 var buffer = fs.readFileSync(input_tile);
+var uncompressed_buffer = decompressBuffer(buffer);
 
-if (buffer[0] === 0x1F && buffer[1] === 0x8B) {
-    var uncompressed_buffer = zlib.gunzipSync(buffer);
+function decompressBuffer(buffer) {
+    if (buffer[0] === 0x1F && buffer[1] === 0x8B) {
+        return zlib.gunzipSync(buffer);
+    } 
+    else if (buffer[0] === 0x78 && 
+        (buffer[1] === 0x9C ||
+         buffer[1] === 0x01 ||
+         buffer[1] === 0xDA ||
+         buffer[1] === 0x5E)) {
+      return zlib.inflate(buffer);
+    } else return null;
+}
+
+
+// Allow compressed gzip or compressed zlib
+if (uncompressed_buffer) {
     validator.isValid(uncompressed_buffer, function(err, valid) {
         if (err) {
             console.error(err.message);
