@@ -31,7 +31,7 @@ if (buffer[0] === 0x1F && buffer[1] === 0x8B) {
             console.error(err.message);
             process.exit(1);
         }
-        if (valid) console.log(valid); // Using "if (valid)" here because vtvalidate returns "/n" for some reason
+        process.stdout.write(valid); // Using "if (valid)" here because vtvalidate returns "/n" for some reason
         process.exit(0);
     });    
 } else {
@@ -40,7 +40,7 @@ if (buffer[0] === 0x1F && buffer[1] === 0x8B) {
             console.error(err.message);
             process.exit(1);
         }
-        if (valid) console.log(valid); // Using "if (valid)" here because vtvalidate returns "/n" for some reason
+        process.stdout.write(valid); // Using "if (valid)" here because vtvalidate returns "/n" for some reason
         process.exit(0);
     });    
 }

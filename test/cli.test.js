@@ -42,7 +42,7 @@ test('invalid filetype', function(t) {
 
   exec(cmd, function(err, stdout, stderr) {
     t.ifError(err, 'no error');
-    t.equal(stdout, 'unknown pbf field type exception\n'); // TODO: figure out where the newline is coming from
+    t.equal(stdout, 'unknown pbf field type exception');
     t.end();
   });
 });
@@ -64,7 +64,7 @@ test('invalid tile', function(t) {
 
   exec(cmd, function(err, stdout, stderr) {
     t.ifError(err, 'no error');
-    t.equal(stdout, 'unknown geometry type\n'); // TODO: figure out where the newline is coming from
+    t.equal(stdout, 'unknown geometry type');
     t.end();
   });
 });
