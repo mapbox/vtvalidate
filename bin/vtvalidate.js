@@ -21,27 +21,38 @@ if (!exists(input_tile)) {
 }
 
 var validator = require('../');
-
 var buffer = fs.readFileSync(input_tile);
-var uncompressed_buffer = decompressBuffer(buffer);
+var wasCompressedBuffer = decompressBuffer(buffer);
 
+// Allow compressed gzip or compressed zlib
 function decompressBuffer(buffer) {
     if (buffer[0] === 0x1F && buffer[1] === 0x8B) {
-        return zlib.gunzipSync(buffer);
+        try {
+            var result = zlib.gunzipSync(buffer);
+            return result;
+        } catch(err) {
+            console.error(err.message);
+            process.exit(1);
+        }
     } 
     else if (buffer[0] === 0x78 && 
         (buffer[1] === 0x9C ||
          buffer[1] === 0x01 ||
          buffer[1] === 0xDA ||
          buffer[1] === 0x5E)) {
-      return zlib.inflate(buffer);
+      
+      try {
+        var result = zlib.inflateSync(buffer);
+        return result;
+      } catch(err) {
+        console.error(err.message);
+        process.exit(1);
+      }
     } else return null;
 }
 
-
-// Allow compressed gzip or compressed zlib
-if (uncompressed_buffer) {
-    validator.isValid(uncompressed_buffer, function(err, valid) {
+if (wasCompressedBuffer) {
+    validator.isValid(wasCompressedBuffer, function(err, valid) {
         if (err) {
             console.error(err.message);
             process.exit(1);
