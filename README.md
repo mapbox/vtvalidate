@@ -65,7 +65,7 @@ node bin/vtvalidate.js <path-to-vector-tile>
   - string that specifies why the tile is invalid
 
 ```
-Accepts either uncompressed or gzip compressed tiles
+Accepts either uncompressed or gzip/zlib compressed tiles
 
 ## Bench
 Provide desired iterations and concurrency
