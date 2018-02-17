@@ -1,3 +1,7 @@
+## 2/16/2018
+
+- Add CLI
+
 ## 1/9/2018
 
 - Add memory stats option to bench tests

@@ -31,6 +31,9 @@
     "minimist": "~1.2.0",
     "bytes": "^2.4.0"
   },
+  "bin": {
+    "vtvalidate": "./bin/vtvalidate.js"
+  },
   "binary": {
     "module_name": "module",
     "module_path": "./lib/binding/",
