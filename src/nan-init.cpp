@@ -1,4 +1,4 @@
-#include "vtvalidate.hpp"
+#include "vtvalidate-nan.hpp"
 #include <nan.h>
 
 // "target" is a magic var that nodejs passes into a module's scope.
@@ -7,7 +7,7 @@
 static void init(v8::Local<v8::Object> target) {
 
     // expose isValid method
-    Nan::SetMethod(target, "isValid", VectorTileValidate::isValid);
+    Nan::SetMethod(target, "isValid", vtvalidate_nan::isValid);
 }
 
 // Here we initialize the module (we only do this once)
