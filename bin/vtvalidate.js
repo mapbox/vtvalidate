@@ -22,7 +22,7 @@ if (!exists(input_tile)) {
 var validator = require('../');
 var buffer = fs.readFileSync(input_tile);
 
-validator.isValid(wasCompressedBuffer, function(err, valid) {
+validator.isValid(buffer, function(err, valid) {
     if (err) {
         console.error(err.message);
         process.exit(1);

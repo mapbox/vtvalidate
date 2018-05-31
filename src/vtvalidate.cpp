@@ -185,12 +185,6 @@ NAN_METHOD(isValid) {
         return;
     }
 
-    // set up the baton to pass into our threadpool
-    auto* baton = new AsyncBaton();
-    baton->request.data = baton;
-    baton->data = node::Buffer::Data(buffer);
-    baton->dataLength = node::Buffer::Length(buffer);
-
     // Creates a worker instance and queues it to run asynchronously, invoking the
     // callback when done.
     // - Nan::AsyncWorker takes a pointer to a Nan::Callback and deletes the
