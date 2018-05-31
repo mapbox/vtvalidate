@@ -111,7 +111,15 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disastrous
         try {
-            result_ = parseTile(data);
+            // Check if buffer is compressed
+            if (gzip::is_compressed(data->data, data->size)) {
+                gzip::Decompressor decompressor;
+                std::string uncompressed;
+                decompressor.decompress(uncompressed, data->data, data->size);
+                result_ = parseTile(data(uncompressed, uncompressed.length()));
+            } else {
+                result_ = parseTile(data);
+            }
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -177,18 +185,11 @@ NAN_METHOD(isValid) {
         return;
     }
 
-    // Check if buffer is compressed
-    data = node::Buffer::Data(buffer);
-    dataLength = node::Buffer::Length(buffer);
-    if (gzip::is_compressed(data, dataLength)) {
-        gzip::Decompressor decompressor;
-        std::string uncompressed;
-        decompressor.decompress(uncompressed, data, dataLength);
-        v8::Local<v8::Value> v8_uncompressed = uncompressed;
-        auto* worker = new AsyncValidateWorker{v8_uncompressed->ToObject(), new Nan::Callback{callback}};
-    } else {
-        auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
-    }
+    // set up the baton to pass into our threadpool
+    auto* baton = new AsyncBaton();
+    baton->request.data = baton;
+    baton->data = node::Buffer::Data(buffer);
+    baton->dataLength = node::Buffer::Length(buffer);
 
     // Creates a worker instance and queues it to run asynchronously, invoking the
     // callback when done.
@@ -197,6 +198,7 @@ NAN_METHOD(isValid) {
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
     // TODO (@flippmoke): use unique_ptr here instead of a raw pointer?
+    auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate
