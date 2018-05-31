@@ -2,6 +2,9 @@
 #include "utils.hpp"
 
 #include <exception>
+#include <gzip/compress.hpp>
+#include <gzip/decompress.hpp>
+#include <gzip/utils.hpp>
 #include <iostream>
 #include <map>
 #include <stdexcept>
@@ -174,6 +177,19 @@ NAN_METHOD(isValid) {
         return;
     }
 
+    // Check if buffer is compressed
+    data = node::Buffer::Data(buffer);
+    dataLength = node::Buffer::Length(buffer);
+    if (gzip::is_compressed(data, dataLength)) {
+        gzip::Decompressor decompressor;
+        std::string uncompressed;
+        decompressor.decompress(uncompressed, data, dataLength);
+        v8::Local<v8::Value> v8_uncompressed = uncompressed;
+        auto* worker = new AsyncValidateWorker{v8_uncompressed->ToObject(), new Nan::Callback{callback}};
+    } else {
+        auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
+    }
+
     // Creates a worker instance and queues it to run asynchronously, invoking the
     // callback when done.
     // - Nan::AsyncWorker takes a pointer to a Nan::Callback and deletes the
@@ -181,8 +197,6 @@ NAN_METHOD(isValid) {
     // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
     // the pointer automatically.
     // TODO (@flippmoke): use unique_ptr here instead of a raw pointer?
-    auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
-
     Nan::AsyncQueueWorker(worker);
 }
 } // namespace VectorTileValidate
