@@ -120,9 +120,11 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
                 gzip::Decompressor decompressor;
                 std::string uncompressed;
                 decompressor.decompress(uncompressed, data.data(), data.size());
-                data = vtzero::data_view(uncompressed);
+                vtzero::data_view dv(uncompressed);
+                result_ = parseTile(dv);
+            } else {
+                result_ = parseTile(data);
             }
-            result_ = parseTile(data);
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
