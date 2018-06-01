@@ -76,7 +76,6 @@ std::string parseTile(vtzero::data_view const& buffer) {
                         // LCOV_EXCL_STOP
                     }
                     return true; // continue to next property
-
                 });
             }
         }
@@ -150,7 +149,7 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
 
     // explicitly use the destructor to clean up
     // the persistent tile ref by Reset()-ing
-    ~AsyncValidateWorker() {
+    ~AsyncValidateWorker() override {
         keep_alive_.Reset();
     }
 };
