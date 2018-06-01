@@ -97,6 +97,11 @@ std::string parseTile(vtzero::data_view const& buffer) {
 // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
 struct AsyncValidateWorker : Nan::AsyncWorker {
     using Base = Nan::AsyncWorker;
+    std::string result_;
+    vtzero::data_view data;
+    // TODO(@flippmoke): research whether Nan::Global would be a better choice to avoid
+    // the need to manually call Reset()
+    Nan::Persistent<v8::Object> keep_alive_;
 
     AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
         : Base(cb),
@@ -111,15 +116,13 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disastrous
         try {
-            // Check if buffer is compressed
-            if (gzip::is_compressed(data->data, data->size)) {
+            if (gzip::is_compressed(data.data(), data.size())) {
                 gzip::Decompressor decompressor;
                 std::string uncompressed;
-                decompressor.decompress(uncompressed, data->data, data->size);
-                result_ = parseTile(data(uncompressed, uncompressed.length()));
-            } else {
-                result_ = parseTile(data);
+                decompressor.decompress(uncompressed, data.data(), data.size());
+                data = vtzero::data_view(uncompressed);
             }
+            result_ = parseTile(data);
         } catch (const std::exception& e) {
             SetErrorMessage(e.what());
         }
@@ -148,12 +151,6 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     ~AsyncValidateWorker() {
         keep_alive_.Reset();
     }
-
-    std::string result_;
-    vtzero::data_view data;
-    // TODO(@flippmoke): research whether Nan::Global would be a better choice to avoid
-    // the need to manually call Reset()
-    Nan::Persistent<v8::Object> keep_alive_;
 };
 
 NAN_METHOD(isValid) {
