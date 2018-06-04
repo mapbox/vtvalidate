@@ -1,6 +1,9 @@
 var test = require('tape');
+var fs = require('fs');
+var path = require('path');
 var module = require('../lib/index.js');
 var mvtf = require('@mapbox/mvt-fixtures');
+var mvtfixtures = path.resolve(__dirname, '..', 'node_modules', '@mapbox', 'mvt-fixtures');
 
 test('success: valid tile', function(t) {
   var buffer = mvtf.get('043').buffer;
@@ -31,6 +34,24 @@ test('success: valid linestring', function(t) {
 
 test('success: valid ring', function(t) {
   var buffer = mvtf.get('022').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
+test('success: valid zlib compressed', function(t) {
+  var buffer = fs.readFileSync(__dirname + '/fixtures/zlib-compressed');
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, '');
+    t.end();
+  });
+});
+
+test('success: valid gzip compressed', function(t) {
+  var buffer = fs.readFileSync(mvtfixtures + '/real-world/compressed/14-9384-9577.mvt.gz');
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
     t.equal(result, '');
