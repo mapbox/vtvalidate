@@ -20,7 +20,7 @@ var assert = require('assert')
 var d3_queue = require('d3-queue');
 var module = require('../lib/index.js');
 var queue = d3_queue.queue();
-var bytes = require('bytes');  
+var bytes = require('bytes');
 
 var p = 'node_modules/@mapbox/mvt-fixtures/real-world/chicago/';
 
@@ -31,7 +31,7 @@ fs.readdir(p, function (err, files) {
 });
 
 var start = function(files){
-  var track_mem = argv.mem ? true : false; 
+  var track_mem = argv.mem ? true : false;
   var iterations = argv.iterations;
   var concurrency = argv.concurrency;
   var runs = 0;
@@ -41,13 +41,13 @@ var start = function(files){
     max_heap:0,
     max_heap_total:0
   };
-    
+
   files.forEach(function(file) {
     var path = p+file;
     var buffer = fs.readFileSync(path);
 
     tiles.push(buffer);
-  });  
+  });
 
   function run(buffer, cb) {
     module.isValid(buffer, function(err, result) {
@@ -66,16 +66,16 @@ var start = function(files){
   }
 
   // Start monitoring time before async work begins within the defer iterator below.
-  // AsyncWorkers will kick off actual work before the defer iterator is finished, 
+  // AsyncWorkers will kick off actual work before the defer iterator is finished,
   // and we want to make sure we capture the time of the work of that initial cycle.
-  console.log('Running benchmark...'); 
-  var time = +(new Date());  
+  console.log('Running benchmark...');
+  var time = +(new Date());
 
   for (var i = 0; i < iterations; i++) {
     tiles.forEach(function(tile) {
       queue.defer(run, tile);
     });
-  }  
+  }
 
   queue.awaitAll(function(error) {
     if (error) throw error;
@@ -83,7 +83,7 @@ var start = function(files){
       throw new Error('Error: did not run as expected');
     }
     // check rate
-    time = +(new Date()) - time;  
+    time = +(new Date()) - time;
 
     if (time == 0) {
       console.log('Warning: ms timer not high enough resolution to reliably track rate. Try more iterations');
@@ -97,12 +97,12 @@ var start = function(files){
       } else {
         console.log('Note: pass --mem to track memory usage');
       }
-    }  
+    }
 
     console.log('Benchmark iterations: ', iterations, 'concurrency: ', concurrency);
 
     // There may be instances when you want to assert some performance metric
-    //assert.equal(rate > 1000, true, 'speed not at least 1000/second ( rate was ' + rate + ' runs/s )');  
+    //assert.equal(rate > 1000, true, 'speed not at least 1000/second ( rate was ' + rate + ' runs/s )');
 
   });
 
