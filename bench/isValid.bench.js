@@ -53,15 +53,18 @@ var start = function(files){
     module.isValid(buffer, function(err, result) {
         if (err) {
           return cb(err);
+        } else if (result.length > 0) {
+          return cb(new Error(result));
+        } else {
+          ++runs;
+          if (track_mem && runs % 1000) {
+            var mem = process.memoryUsage();
+            if (mem.rss > memstats.max_rss) memstats.max_rss = mem.rss;
+            if (mem.heapTotal > memstats.max_heap_total) memstats.max_heap_total = mem.heapTotal;
+            if (mem.heapUsed > memstats.max_heap) memstats.max_heap = mem.heapUsed;
+          }
+          return cb();
         }
-        ++runs;
-        if (track_mem && runs % 1000) {
-          var mem = process.memoryUsage();
-          if (mem.rss > memstats.max_rss) memstats.max_rss = mem.rss;
-          if (mem.heapTotal > memstats.max_heap_total) memstats.max_heap_total = mem.heapTotal;
-          if (mem.heapUsed > memstats.max_heap) memstats.max_heap = mem.heapUsed;
-        }
-        return cb();
     });
   }
 
