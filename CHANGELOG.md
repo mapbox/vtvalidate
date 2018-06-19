@@ -1,3 +1,8 @@
+## 6/19/2018
+
+- Add gzip-hpp compression support per https://github.com/mapbox/vtvalidate/pull/18
+- Update bench test to handle errors properly per https://github.com/mapbox/vtvalidate/pull/19
+
 ## 2/16/2018
 
 - Add CLI
