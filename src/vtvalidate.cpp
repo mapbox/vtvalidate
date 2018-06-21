@@ -103,7 +103,7 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     Nan::Persistent<v8::Object> keep_alive_;
 
     AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
-        : Base(cb),
+        : Base(cb,"async-validate-worker"),
           result_{""},
           data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
           keep_alive_(buffer) {}
@@ -144,7 +144,7 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
             Nan::Null(), Nan::New<v8::String>(result_).ToLocalChecked()};
 
         // Static cast done here to avoid 'cppcoreguidelines-pro-bounds-array-to-pointer-decay' warning with clang-tidy
-        callback->Call(argc, static_cast<v8::Local<v8::Value>*>(argv));
+        callback->Call(argc, static_cast<v8::Local<v8::Value>*>(argv), async_resource);
     }
 
     // explicitly use the destructor to clean up
