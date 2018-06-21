@@ -103,7 +103,7 @@ struct AsyncValidateWorker : Nan::AsyncWorker {
     Nan::Persistent<v8::Object> keep_alive_;
 
     AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
-        : Base(cb,"async-validate-worker"),
+        : Base(cb, "async-validate-worker"),
           result_{""},
           data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
           keep_alive_(buffer) {}
