@@ -50,11 +50,11 @@ matrix:
     # linux publishable node v10/release
     - os: linux
       env: BUILDTYPE=release
-      node_js: 10
+      node_js: 8
     # linux publishable node v10/debug
     - os: linux
       env: BUILDTYPE=debug
-      node_js: 10
+      node_js: 8
     # linux publishable node v4/release
     - os: linux
       env: BUILDTYPE=release
