@@ -18,11 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "nan": "~2.10.0",
-    "node-pre-gyp": "~0.6.32"
+    "node-pre-gyp": "~0.10.1"
   },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
   "devDependencies": {
     "@mapbox/mvt-fixtures": "~3.1.0",
     "aws-sdk": "^2.4.7",
