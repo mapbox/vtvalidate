@@ -1,6 +1,6 @@
 ## v0.2.2
 
-- Added node v8 and node v8 support
+- Added node v8 and node v10 support
 
 ## v0.2.1
 
