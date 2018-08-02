@@ -25,10 +25,19 @@ make distclean
 ```
 
 ## Usage
+ 
+- If the tile is valid, `vtvalidate` will return an empty string. 
+- If the tile is invalid, `vtvalidate` will return the string output from vtzero. 
+- `vtvalidate` will throw an error if there is unexpected behaviour, for example an invalid parameter value or a corrupt compressed buffer.
 
-`vtvalidate` validates tile data against [vtzero](https://github.com/mapbox/vtzero). If the tile is valid, the result will be an empty string. If vtzero is unable to decode a tile and [its geometries](https://github.com/mapbox/vtzero/blob/a42889ddd507c38a3b5f49a0ea8468a8f4a394a4/doc/reading.md#geometries) or if the tile data is not consistent with the [Mapbox vector tile spec](https://www.mapbox.com/vector-tiles/specification/), `vtvalidate` will return the string output from vtzero.
+#### Type of validation
+`vtvalidate` validates tile data against [vtzero](https://github.com/mapbox/vtzero):
+- Tile data consistent with the [Mapbox vector tile spec - Version 2](https://www.mapbox.com/vector-tiles/specification/). Tiles created via Mapbox vector tile spec Version 1 will be flagged invalid.
+- Read tile layer(s) and feature(s)
+- Decode properties
+- Decode geometries
 
-`vtvalidate` will only throw an error if there is unexpected behaviour (ex: invalid parameter values or a corrupt compressed buffer).
+If you'd like to add more extensive tile validation, check out [this example](https://github.com/mapbox/vtzero/blob/master/examples/vtzero-check.cpp).
 
 #### Valid tile
 ```js

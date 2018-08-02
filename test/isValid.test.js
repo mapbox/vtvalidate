@@ -112,6 +112,15 @@ test('success: invalid tile', function(t) {
   });
 });
 
+test('success: valid v1 tile, but invalid v2', function(t) {
+  var buffer = mvtf.get('061').buffer;
+  module.isValid(buffer, function(err, result) {
+    if (err) throw err;
+    t.equal(result, 'expected command 1 but got 7');
+    t.end();
+  });
+});
+
 test('success: invalid tile', function(t) {
   var buffer = mvtf.get('005').buffer;
   module.isValid(buffer, function(err, result) {
