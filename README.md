@@ -28,16 +28,7 @@ make distclean
  
 - If the tile is valid, `vtvalidate` will return an empty string. 
 - If the tile is invalid, `vtvalidate` will return the string output from vtzero. 
-- `vtvalidate` will throw an error if there is unexpected behaviour, for example an invalid parameter value or a corrupt compressed buffer.
-
-#### Type of validation
-`vtvalidate` validates tile data against [vtzero](https://github.com/mapbox/vtzero):
-- Tile data consistent with the [Mapbox vector tile spec - Version 2](https://www.mapbox.com/vector-tiles/specification/). Tiles created via Mapbox vector tile spec Version 1 will be flagged invalid.
-- Read tile layer(s) and feature(s)
-- Decode properties
-- Decode geometries
-
-If you'd like to add more extensive tile validation, check out [this example](https://github.com/mapbox/vtzero/blob/master/examples/vtzero-check.cpp).
+- `vtvalidate` will throw an error if there is unexpected behaviour, for example an invalid argument value passed into `vtvalidate.isValid()` or a corrupt compressed buffer.
 
 #### Valid tile
 ```js
@@ -68,6 +59,16 @@ vtvalidate.isValid(buffer, function(err, result) {
   console.log(result); // 'Missing geometry field in feature (spec 4.2)'
 });
 ```
+
+#### Type of validation
+`vtvalidate` validates tile data against [vtzero](https://github.com/mapbox/vtzero):
+- Tile data consistent with the [Mapbox vector tile spec - Version 2](https://www.mapbox.com/vector-tiles/specification/). Tiles created via Mapbox vector tile spec Version 1 will be flagged invalid.
+- Read tile layer(s) and feature(s)
+- Decode properties
+- Decode geometries
+
+Currently, vtvalidate does not check geometries for self-intersections, but planned in [the future](https://github.com/mapbox/core-tech/issues/253). If you'd like to add more extensive tile validation, check out [this example](https://github.com/mapbox/vtzero/blob/master/examples/vtzero-check.cpp).
+
 
 ## CLI
 
