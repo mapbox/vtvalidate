@@ -26,6 +26,10 @@ make distclean
 
 ## Usage
 
+`vtvalidate` validates tile data against [vtzero](https://github.com/mapbox/vtzero). If the tile is valid, the result will be an empty string. If vtzero is unable to decode a tile and [its geometries](https://github.com/mapbox/vtzero/blob/a42889ddd507c38a3b5f49a0ea8468a8f4a394a4/doc/reading.md#geometries) or if the tile data is not consistent with the [Mapbox vector tile spec](https://www.mapbox.com/vector-tiles/specification/), `vtvalidate` will return the string output from vtzero.
+
+`vtvalidate` will only throw an error if there is unexpected behaviour (ex: invalid parameter values or a corrupt compressed buffer).
+
 #### Valid tile
 ```js
 var vtvalidate = require('@mapbox/vtvalidate');
@@ -57,15 +61,16 @@ vtvalidate.isValid(buffer, function(err, result) {
 ```
 
 ## CLI
+
+Accepts either uncompressed or gzip/zlib compressed tiles
+
 ```
 node bin/vtvalidate.js <path-to-vector-tile>
-
-  Will output:
-  - empty string if it's a valid tile
-  - string that specifies why the tile is invalid
-
 ```
-Accepts either uncompressed or gzip/zlib compressed tiles
+Will output:
+- empty string if it's a valid tile
+- string that specifies why the tile is invalid
+
 
 ## Bench
 Provide desired iterations and concurrency
