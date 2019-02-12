@@ -1,3 +1,8 @@
+## v0.2.3
+
+- Add `-Wno-error=deprecated-declarations` flags to binding.gyp to turn NAN errors into warnings [#27](https://github.com/mapbox/vtvalidate/issues/27)
+- Add package-lock.json
+
 ## v0.2.2
 
 - Added node v8 and node v10 support
