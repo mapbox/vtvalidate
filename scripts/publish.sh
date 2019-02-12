@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -eu
 set -o pipefail
 
 export COMMIT_MESSAGE=$(git log --format=%B --no-merges -n 1 | tr -d '\n')
@@ -37,7 +36,6 @@ function publish() {
 
   if [[ $(is_pr_merge) ]]; then
       echo "Skipping publishing because this is a PR merge commit"
-      exit 0
   else
       echo "Commit message: ${COMMIT_MESSAGE}"
 
@@ -49,7 +47,6 @@ function publish() {
           ./node_modules/.bin/node-pre-gyp package unpublish publish $@
       else
           echo "Skipping publishing since we did not detect either [publish binary] or [republish binary] in commit message"
-          exit 0
       fi
   fi
 }
