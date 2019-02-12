@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -eu
 set -o pipefail
 
 export COMMIT_MESSAGE=$(git log --format=%B --no-merges -n 1 | tr -d '\n')
