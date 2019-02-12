@@ -25,7 +25,7 @@
         '-Wunreachable-code',
         '-Wold-style-cast',
         '-Wno-error=unused-variable',
-        '-Wno-deprecated'
+        '-Wno-error=deprecated-declarations'
       ]
   },
   # `targets` is a list of targets for gyp to run.
