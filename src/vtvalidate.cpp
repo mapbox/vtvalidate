@@ -1,15 +1,15 @@
 #include "vtvalidate.hpp"
 #include "utils.hpp"
-
-#include <exception>
+// gzip
 #include <gzip/compress.hpp>
 #include <gzip/decompress.hpp>
 #include <gzip/utils.hpp>
-#include <iostream>
-#include <map>
-#include <stdexcept>
-#include <memory>
+// vtzero
 #include <vtzero/vector_tile.hpp>
+// stl
+#include <exception>
+#include <memory>
+
 
 namespace VectorTileValidate {
 
