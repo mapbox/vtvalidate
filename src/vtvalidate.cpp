@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <memory>
 #include <vtzero/vector_tile.hpp>
 
 namespace VectorTileValidate {
@@ -94,103 +95,77 @@ std::string parseTile(vtzero::data_view const& buffer) {
 // them alive until done.
 // Nan AsyncWorker docs:
 // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-struct AsyncValidateWorker : Nan::AsyncWorker {
-    using Base = Nan::AsyncWorker;
-    std::string result_;
-    vtzero::data_view data;
-    // TODO(@flippmoke): research whether Nan::Global would be a better choice to avoid
-    // the need to manually call Reset()
-    Nan::Persistent<v8::Object> keep_alive_;
+struct AsyncValidateWorker : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncValidateWorker(Napi::Buffer<char> const& buffer, Napi::Function& cb)
+        : Base(cb),
+          data_(buffer.Data(), buffer.Length())
+    {}
 
-    AsyncValidateWorker(v8::Local<v8::Object> const& buffer, Nan::Callback* cb)
-        : Base(cb, "vtvalidate:worker"),
-          result_{""},
-          data(node::Buffer::Data(buffer), node::Buffer::Length(buffer)),
-          keep_alive_(buffer) {}
-
-    // The Execute() function is getting called when the worker starts to run.
-    // - You only have access to member variables stored in this worker.
-    // - You do not have access to Javascript v8 objects here.
-    void Execute() override {
+    void Execute() override
+    {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disastrous
-        try {
-            if (gzip::is_compressed(data.data(), data.size())) {
+        try
+        {
+            if (gzip::is_compressed(data_.data(), data_.size()))
+            {
                 gzip::Decompressor decompressor;
                 std::string uncompressed;
-                decompressor.decompress(uncompressed, data.data(), data.size());
+                decompressor.decompress(uncompressed, data_.data(), data_.size());
                 vtzero::data_view dv(uncompressed);
-                result_ = parseTile(dv);
-            } else {
-                result_ = parseTile(data);
+                *result_ = parseTile(dv);
             }
-        } catch (const std::exception& e) {
-            SetErrorMessage(e.what());
+            else
+            {
+                *result_ = parseTile(data_);
+            }
+        }
+        catch (std::exception const& e)
+        {
+            SetError(e.what());
         }
     }
 
-    // The HandleOKCallback() is getting called when Execute() successfully
-    // completed.
-    // - In case Execute() invoked SetErrorMessage("") this function is not
-    // getting called.
-    // - You have access to Javascript v8 objects again
-    // - You have to translate from C++ member variables to Javascript v8 objects
-    // - Finally, you call the user's callback with your results
-    void HandleOKCallback() override {
-        Nan::HandleScope scope;
-
-        const auto argc = 2u;
-        v8::Local<v8::Value> argv[argc] = {
-            Nan::Null(), Nan::New<v8::String>(result_).ToLocalChecked()};
-
-        // Static cast done here to avoid 'cppcoreguidelines-pro-bounds-array-to-pointer-decay' warning with clang-tidy
-        callback->Call(argc, static_cast<v8::Local<v8::Value>*>(argv), async_resource);
+    void OnOK() override
+    {
+        Napi::HandleScope scope(Env());
+        Callback().Call({Env().Null(), Napi::String::New(Env(), *result_)});
     }
 
-    // explicitly use the destructor to clean up
-    // the persistent tile ref by Reset()-ing
-    ~AsyncValidateWorker() override {
-        keep_alive_.Reset();
-    }
+    std::unique_ptr<std::string> result_ = std::make_unique<std::string>();
+    vtzero::data_view data_;
 };
 
-NAN_METHOD(isValid) {
+Napi::Value isValid(Napi::CallbackInfo const& info)
+{
+    // FIXME - add check to ensure there are exactly two arguments ??
+    // .....
 
     // Check second argument, should be a 'callback' function.
-    // This allows us to set the callback so we can use it to return errors
-    // instead of throwing.
-    // Also, "info" comes from the NAN_METHOD macro, which returns differently
-    // according to the version of node
-    if (!info[1]->IsFunction()) {
-        return Nan::ThrowTypeError("second arg \"callback\" must be a function");
+    if (!info[1].IsFunction())
+    {
+        Napi::TypeError::New(info.Env(), "second arg \"callback\" must be a function").ThrowAsJavaScriptException();
+        return info.Env().Null();
     }
-    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
+
+    Napi::Function callback = info[1].As<Napi::Function>();
 
     // BUFFER: check first argument, should be a pbf object
-    v8::Local<v8::Value> buffer_val = info[0];
-    if (buffer_val->IsNull() ||
-        buffer_val->IsUndefined()) {
-        utils::CallbackError("first arg is empty", callback);
-        return;
+    Napi::Object buffer_obj = info[0].As<Napi::Object>();
+    if (buffer_obj.IsNull() || buffer_obj.IsUndefined())
+    {
+        return utils::CallbackError("first arg is empty", info);
     }
-
-    v8::Local<v8::Object> buffer = buffer_val->ToObject();
-
-    if (buffer->IsNull() ||
-        buffer->IsUndefined() ||
-        !node::Buffer::HasInstance(buffer)) {
-        utils::CallbackError("first arg \"buffer\" must be a Protobuf object", callback);
-        return;
+    if (!buffer_obj.IsBuffer())
+    {
+        return utils::CallbackError("first arg \"buffer\" must be a Protobuf object", info);
     }
+    Napi::Buffer<char> buffer = buffer_obj.As<Napi::Buffer<char>>();
 
-    // Creates a worker instance and queues it to run asynchronously, invoking the
-    // callback when done.
-    // - Nan::AsyncWorker takes a pointer to a Nan::Callback and deletes the
-    // pointer automatically.
-    // - Nan::AsyncQueueWorker takes a pointer to a Nan::AsyncWorker and deletes
-    // the pointer automatically.
-    // TODO (@flippmoke): use unique_ptr here instead of a raw pointer?
-    auto* worker = new AsyncValidateWorker{buffer, new Nan::Callback{callback}};
-    Nan::AsyncQueueWorker(worker);
+    auto worker = new AsyncValidateWorker(buffer, callback);
+    worker->Queue();
+    return info.Env().Undefined();
 }
 } // namespace VectorTileValidate
