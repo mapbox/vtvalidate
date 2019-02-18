@@ -10,7 +10,6 @@
 #include <exception>
 #include <memory>
 
-
 namespace VectorTileValidate {
 
 struct geom_handler {
@@ -95,41 +94,31 @@ std::string parseTile(vtzero::data_view const& buffer) {
 // them alive until done.
 // Nan AsyncWorker docs:
 // https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
-struct AsyncValidateWorker : Napi::AsyncWorker
-{
+struct AsyncValidateWorker : Napi::AsyncWorker {
     using Base = Napi::AsyncWorker;
     AsyncValidateWorker(Napi::Buffer<char> const& buffer, Napi::Function& cb)
         : Base(cb),
-          data_(buffer.Data(), buffer.Length())
-    {}
+          data_(buffer.Data(), buffer.Length()) {}
 
-    void Execute() override
-    {
+    void Execute() override {
         // The try/catch is critical here: if code was added that could throw an
         // unhandled error INSIDE the threadpool, it would be disastrous
-        try
-        {
-            if (gzip::is_compressed(data_.data(), data_.size()))
-            {
+        try {
+            if (gzip::is_compressed(data_.data(), data_.size())) {
                 gzip::Decompressor decompressor;
                 std::string uncompressed;
                 decompressor.decompress(uncompressed, data_.data(), data_.size());
                 vtzero::data_view dv(uncompressed);
                 *result_ = parseTile(dv);
-            }
-            else
-            {
+            } else {
                 *result_ = parseTile(data_);
             }
-        }
-        catch (std::exception const& e)
-        {
+        } catch (std::exception const& e) {
             SetError(e.what());
         }
     }
 
-    void OnOK() override
-    {
+    void OnOK() override {
         Napi::HandleScope scope(Env());
         Callback().Call({Env().Null(), Napi::String::New(Env(), *result_)});
     }
@@ -138,14 +127,12 @@ struct AsyncValidateWorker : Napi::AsyncWorker
     vtzero::data_view data_;
 };
 
-Napi::Value isValid(Napi::CallbackInfo const& info)
-{
+Napi::Value isValid(Napi::CallbackInfo const& info) {
     // FIXME - add check to ensure there are exactly two arguments ??
     // .....
 
     // Check second argument, should be a 'callback' function.
-    if (!info[1].IsFunction())
-    {
+    if (!info[1].IsFunction()) {
         Napi::TypeError::New(info.Env(), "second arg \"callback\" must be a function").ThrowAsJavaScriptException();
         return info.Env().Null();
     }
@@ -154,12 +141,10 @@ Napi::Value isValid(Napi::CallbackInfo const& info)
 
     // BUFFER: check first argument, should be a pbf object
     Napi::Object buffer_obj = info[0].As<Napi::Object>();
-    if (buffer_obj.IsNull() || buffer_obj.IsUndefined())
-    {
+    if (buffer_obj.IsNull() || buffer_obj.IsUndefined()) {
         return utils::CallbackError("first arg is empty", info);
     }
-    if (!buffer_obj.IsBuffer())
-    {
+    if (!buffer_obj.IsBuffer()) {
         return utils::CallbackError("first arg \"buffer\" must be a Protobuf object", info);
     }
     Napi::Buffer<char> buffer = buffer_obj.As<Napi::Buffer<char>>();

@@ -4,5 +4,4 @@
 namespace VectorTileValidate {
 
 Napi::Value isValid(Napi::CallbackInfo const& info);
-
 }
