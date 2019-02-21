@@ -59,6 +59,37 @@ test('success: valid gzip compressed', function(t) {
   });
 });
 
+test('failure: wrong number of arguments: 0 ', function(t) {
+  try {
+    module.isValid();
+  } catch(err) {
+    t.ok(err)
+    t.equal(err.message, 'wrong number of arguments');
+    t.end();
+  }
+});
+
+test('failure: wrong number of arguments: 1', function(t) {
+  try {
+    module.isValid(1);
+  } catch(err) {
+    t.ok(err)
+    t.equal(err.message, 'wrong number of arguments');
+    t.end();
+  }
+});
+
+test('failure: wrong number of arguments: 3 ', function(t) {
+  try {
+    module.isValid(1,2,3);
+  } catch(err) {
+    t.ok(err)
+    t.equal(err.message, 'wrong number of arguments');
+    t.end();
+  }
+});
+
+
 test('failure: invalid arg type', function(t) {
   module.isValid('woops', function(err, result) {
     t.ok(err)
@@ -86,7 +117,7 @@ test('failure: invalid arg type', function(t) {
 test('failure: missing callback', function(t) {
   var buffer = mvtf.get('043').buffer;
   try {
-    module.isValid(buffer);
+    module.isValid(buffer, 123);
   } catch(err) {
     t.ok(err)
     t.equal(err.message, 'second arg \"callback\" must be a function');

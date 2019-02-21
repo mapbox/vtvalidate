@@ -128,13 +128,17 @@ struct AsyncValidateWorker : Napi::AsyncWorker {
 };
 
 Napi::Value isValid(Napi::CallbackInfo const& info) {
-    // FIXME - add check to ensure there are exactly two arguments ??
-    // .....
 
+    Napi::Env env = info.Env();
+
+    if (info.Length() != 2) {
+        Napi::TypeError::New(env, "wrong number of arguments").ThrowAsJavaScriptException();
+        return env.Null();
+    }
     // Check second argument, should be a 'callback' function.
     if (!info[1].IsFunction()) {
-        Napi::TypeError::New(info.Env(), "second arg \"callback\" must be a function").ThrowAsJavaScriptException();
-        return info.Env().Null();
+        Napi::TypeError::New(env, "second arg \"callback\" must be a function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     Napi::Function callback = info[1].As<Napi::Function>();
@@ -151,6 +155,6 @@ Napi::Value isValid(Napi::CallbackInfo const& info) {
 
     auto worker = new AsyncValidateWorker(buffer, callback);
     worker->Queue();
-    return info.Env().Undefined();
+    return env.Undefined();
 }
 } // namespace VectorTileValidate
