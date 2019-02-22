@@ -55,14 +55,6 @@ matrix:
     - os: linux
       env: BUILDTYPE=debug
       node_js: 8
-    # linux publishable node v4/release
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 4
-    # linux publishable node v4/debug
-    - os: linux
-      env: BUILDTYPE=debug
-      node_js: 4
     # linux publishable node v6
     - os: linux
       env: BUILDTYPE=release
@@ -71,11 +63,6 @@ matrix:
     - os: linux
       env: BUILDTYPE=debug
       node_js: 6
-    # osx publishable node v4
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 4
     # osx publishable node v6
     - os: osx
       osx_image: xcode8.2
