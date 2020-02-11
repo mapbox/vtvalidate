@@ -167,14 +167,17 @@ NAN_METHOD(isValid) {
     v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     // BUFFER: check first argument, should be a pbf object
+    v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Value> buffer_val = info[0];
+
     if (buffer_val->IsNull() ||
         buffer_val->IsUndefined()) {
         utils::CallbackError("first arg is empty", callback);
         return;
     }
 
-    v8::Local<v8::Object> buffer = buffer_val->ToObject();
+    v8::Local<v8::Object> buffer = buffer_val->ToObject(context).ToLocalChecked();
 
     if (buffer->IsNull() ||
         buffer->IsUndefined() ||
