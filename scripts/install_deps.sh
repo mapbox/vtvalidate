@@ -12,6 +12,6 @@ function install() {
 ./scripts/setup.sh --config local.env
 source local.env
 
-install protozero 1.6.1
-install vtzero 1.0.0
+install protozero 1.7.0
+install vtzero 1.0.3
 install gzip-hpp 0.1.0
