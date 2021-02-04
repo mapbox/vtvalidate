@@ -13,5 +13,5 @@ function install() {
 source local.env
 
 install protozero 1.7.0
-install vtzero 1.0.3
+install vtzero 1.1.0
 install gzip-hpp 0.1.0
