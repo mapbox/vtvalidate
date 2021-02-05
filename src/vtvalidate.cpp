@@ -35,8 +35,6 @@ struct geom_handler {
 }; // struct geom_handler
 
 std::string parseTile(vtzero::data_view const& buffer) {
-    std::string result;
-
     vtzero::vector_tile tile{buffer};
     try {
         tile.for_each_layer([&](vtzero::layer const& layer) {
@@ -81,12 +79,9 @@ std::string parseTile(vtzero::data_view const& buffer) {
             return true;
         });
     } catch (std::exception const& ex) {
-        result = ex.what();
-        return result;
+        return ex.what();
     }
-
-    result = "";
-    return result;
+    return std::string{};
 }
 
 struct AsyncValidateWorker : Napi::AsyncWorker {
