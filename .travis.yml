@@ -57,15 +57,16 @@ matrix:
       osx_image: xcode10
       env: BUILDTYPE=release
       node_js: 12
-    # Sanitizer build node v4/Debug
+    # Sanitizer build node v10/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=asan
-      node_js: 12
+      node_js: 10
+      sudo: required
       # Overrides `install` to set up custom asan flags
       install:
         - make sanitize
-      # Overrides `script` to disable asan LD_PRELOAD before publishing
       before_script:
+        - true
     # g++ build (default builds all use clang++)
     - os: linux
       env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm"
