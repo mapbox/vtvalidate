@@ -1,12 +1,10 @@
 language: node_js
 
-sudo: false
-
 # enable c++11/14 builds
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-4.9-dev' ]
+    packages: [ 'libstdc++-5-dev' ]
 
 install:
   # set up the environment by installing mason and clang++
@@ -18,6 +16,8 @@ install:
   - clang++ -v
   - which clang++
   - make ${BUILDTYPE}
+  # Build should be standalone now, so remove mason deps
+  - rm -rf mason_packages
 
 # *Here we run tests*
 # We prefer running tests in the 'before_script' section rather than 'script' to ensure fast failure.
@@ -27,13 +27,10 @@ install:
 # For this reason, we disable the 'script' section below, since we prefer using 'before_script'.
 before_script:
   - npm test
+
+script:
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
-
-# We set 'script' here to an empty array to prevent this section from automatically running 'npm test'
-# The reason we do this is mentioned above in the comment about the 'before_script' stage.
-# For reference, the default travis behavior which we override comes from https://github.com/travis-ci/travis-build/blob/e5a45cbf49e0d9e27398e76e5f25dd7706feb6aa/lib/travis/build/script/node_js.rb#L62-L69.
-script:
 
 # the matrix allows you to specify different operating systems and environments to
 # run your tests and build binaries
@@ -47,42 +44,23 @@ matrix:
     - os: linux
       env: BUILDTYPE=debug
       node_js: 10
-    # linux publishable node v10/release
+    # linux publishable node v12/release
     - os: linux
       env: BUILDTYPE=release
-      node_js: 8
-    # linux publishable node v10/debug
-    - os: linux
-      env: BUILDTYPE=debug
-      node_js: 8
-    # linux publishable node v6
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 6
-    # linux publishable node v6/debug
+      node_js: 12
+    # linux publishable node v12/debug
     - os: linux
       env: BUILDTYPE=debug
-      node_js: 6
-    # osx publishable node v6
+      node_js: 12
+    # osx publishable node v12
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode10
       env: BUILDTYPE=release
-      node_js: 6
-    # osx publishable node v8
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 8
-    # osx publishable node v10
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 10
+      node_js: 12
     # Sanitizer build node v4/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=asan
-      node_js: 8
-      sudo: required
+      node_js: 12
       # Overrides `install` to set up custom asan flags
       install:
         - make sanitize
@@ -90,8 +68,8 @@ matrix:
       before_script:
     # g++ build (default builds all use clang++)
     - os: linux
-      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"
-      node_js: 8
+      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm"
+      node_js: 10
       addons:
         apt:
           sources:
@@ -105,20 +83,19 @@ matrix:
       # Overrides `script` to disable publishing
       before_script:
         - npm test
+      # Overrides `script` to disable publishing
+      script:
+        - true
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
-      node_js: 8
+      node_js: 10
       # Overrides `script` to publish coverage data to codecov
       script:
-        - npm test
-        - mason install llvm-cov ${MASON_LLVM_RELEASE}
-        - mason link llvm-cov ${MASON_LLVM_RELEASE}
-        - PATH=`echo $PATH | sed -e 's/:\.\/node_modules\/\.bin//'` # remove relative path
+        - export PATH=$(pwd)/mason_packages/.link/bin/:${PATH}
         - which llvm-cov
-        - curl -S -f https://codecov.io/bash -o codecov
-        - chmod +x codecov
-        - ./codecov -x "llvm-cov gcov" -Z
+        - pip install --user codecov
+        - codecov --gcov-exec "llvm-cov gcov -l"
     # Clang format build
     - os: linux
       # can be generic since we don't need nodejs to run formatting
@@ -132,10 +109,13 @@ matrix:
         - make format
       # Overrides `script`, no need to run tests
       before_script:
+        - true
+      script:
+        - true
     # Clang tidy build
     - os: linux
       env: CLANG_TIDY
-      node_js: 8
+      node_js: 10
       # Overrides `install` to avoid initializing clang toolchain
       install:
         # First run the clang-tidy target
@@ -145,3 +125,6 @@ matrix:
         - make tidy
       # Overrides `script`, no need to run tests
       before_script:
+        - true
+      script:
+        - true
