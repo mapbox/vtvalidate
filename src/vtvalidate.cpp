@@ -39,12 +39,11 @@ std::string parseTile(vtzero::data_view const& buffer) {
 
     vtzero::vector_tile tile{buffer};
     try {
-        while (auto layer = tile.next_layer()) {
-            while (auto feature = layer.next_feature()) {
+        tile.for_each_layer([&](vtzero::layer const& layer) {
+            layer.for_each_feature([&](vtzero::feature const& feature) {
                 // Detect geomtype of feature and decode
                 geom_handler handler;
                 vtzero::decode_geometry(feature.geometry(), handler);
-
                 feature.for_each_property([&](vtzero::property const& p) {
                     p.key();
                     auto value = p.value();
@@ -70,15 +69,17 @@ std::string parseTile(vtzero::data_view const& buffer) {
                     case vtzero::property_value_type::bool_value:
                         value.bool_value();
                         break;
-                    // LCOV_EXCL_START
+                        // LCOV_EXCL_START
                     default:
                         throw std::runtime_error("Invalid property value type"); // this can never happen, since vtzero handles the error earlier
                         // LCOV_EXCL_STOP
                     }
                     return true; // continue to next property
                 });
-            }
-        }
+                return true;
+            });
+            return true;
+        });
     } catch (std::exception const& ex) {
         result = ex.what();
         return result;
