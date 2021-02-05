@@ -88,17 +88,12 @@ std::string parseTile(vtzero::data_view const& buffer) {
     return result;
 }
 
-// This is the worker running asynchronously and calling a user-provided
-// callback when done.
-// Consider storing all C++ objects you need by value or by shared_ptr to keep
-// them alive until done.
-// Nan AsyncWorker docs:
-// https://github.com/nodejs/nan/blob/master/doc/asyncworker.md
 struct AsyncValidateWorker : Napi::AsyncWorker {
     using Base = Napi::AsyncWorker;
     AsyncValidateWorker(Napi::Buffer<char> const& buffer, Napi::Function& cb)
         : Base(cb),
-          data_(buffer.Data(), buffer.Length()) {}
+          buffer_ref{Napi::Persistent(buffer)},
+          data_{buffer.Data(), buffer.Length()} {}
 
     void Execute() override {
         // The try/catch is critical here: if code was added that could throw an
@@ -109,22 +104,23 @@ struct AsyncValidateWorker : Napi::AsyncWorker {
                 std::string uncompressed;
                 decompressor.decompress(uncompressed, data_.data(), data_.size());
                 vtzero::data_view dv(uncompressed);
-                *result_ = parseTile(dv);
+                result_ = parseTile(dv);
             } else {
-                *result_ = parseTile(data_);
+                result_ = parseTile(data_);
             }
         } catch (std::exception const& e) {
             SetError(e.what());
         }
     }
 
-    void OnOK() override {
-        Napi::HandleScope scope(Env());
-        Callback().Call({Env().Null(), Napi::String::New(Env(), *result_)});
+    std::vector<napi_value> GetResult(Napi::Env env) override {
+        return {env.Null(), Napi::String::New(env, result_)};
     }
 
-    std::unique_ptr<std::string> result_ = std::make_unique<std::string>();
+  private:
+    Napi::Reference<Napi::Buffer<char>> buffer_ref;
     vtzero::data_view data_;
+    std::string result_;
 };
 
 Napi::Value isValid(Napi::CallbackInfo const& info) {
