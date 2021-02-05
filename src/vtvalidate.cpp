@@ -120,7 +120,7 @@ struct AsyncValidateWorker : Napi::AsyncWorker {
   private:
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     vtzero::data_view data_;
-    std::string result_;
+    std::string result_{};
 };
 
 Napi::Value isValid(Napi::CallbackInfo const& info) {
