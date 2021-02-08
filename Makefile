@@ -5,29 +5,35 @@ export WERROR ?= true
 
 default: release
 
-node_modules:
-	# install deps but for now ignore our own install script
-	# so that we can run it directly in either debug or release
+node_modules/install:
 	npm install --ignore-scripts
 
-release: node_modules
+mason_packages/headers: node_modules/install
+	node_modules/.bin/mason-js install
+
+mason_packages/.link/include: mason_packages/headers
+	node_modules/.bin/mason-js link
+
+build-deps: mason_packages/.link/include
+
+release: build-deps
 	V=1 ./node_modules/.bin/node-pre-gyp configure build --error_on_warnings=$(WERROR) --loglevel=error
 	@echo "run 'make clean' for full rebuild"
 
-debug: node_modules
+debug: build-deps
 	V=1 ./node_modules/.bin/node-pre-gyp configure build --error_on_warnings=$(WERROR) --loglevel=error --debug
 	@echo "run 'make clean' for full rebuild"
 
-coverage:
+coverage: build-deps
 	./scripts/coverage.sh
 
-tidy:
+tidy: build-deps
 	./scripts/clang-tidy.sh
 
-format:
+format: build-deps
 	./scripts/clang-format.sh
 
-sanitize:
+sanitize: build-deps
 	./scripts/sanitize.sh
 
 clean:
