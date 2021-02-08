@@ -6,19 +6,17 @@
       # Use this variable to silence warnings from mason dependencies
       # It's a variable to make easy to pass to
       # cflags (linux) and xcode (mac)
-      'system_includes': [
-        "-isystem <!@(node -p \"require('node-addon-api').include.slice(1,-1)\")",
-        "-isystem <(module_root_dir)/mason_packages/.link/include/"
-      ],
+      #'system_includes': [
+      #  "-isystem <!@(node -p \"require('node-addon-api').include.slice(1,-1)\")",
+      #  "-isystem <(module_root_dir)/mason_packages/.link/include/"
+      #],
       # Flags we pass to the compiler to ensure the compiler
       # warns us about potentially buggy or dangerous code
       'compiler_checks': [
         '-Wall',
         '-Wextra',
         '-Weffc++',
-        '-Wconversion',
         '-pedantic-errors',
-        '-Wconversion',
         '-Wshadow',
         '-Wfloat-equal',
         '-Wuninitialized',
@@ -46,9 +44,15 @@
       'actions': [
         {
           'action_name': 'install_deps',
-          'inputs': ['./scripts/install_deps.sh'],
+          'inputs': ['./node_modules/.bin/mason-js'],
           'outputs': ['./mason_packages'],
-          'action': ['./scripts/install_deps.sh']
+          'action': ['./node_modules/.bin/mason-js', 'install']
+        },
+                {
+          'action_name': 'link_deps',
+          'inputs': ['./node_modules/.bin/mason-js'],
+          'outputs': ['./mason_packages/.link'],
+          'action': ['./node_modules/.bin/mason-js', 'link']
         }
       ]
     },
@@ -67,6 +71,11 @@
         './src/module.cpp',
         './src/vtvalidate.cpp'
       ],
+      'include_dirs': [
+        './mason_packages/.link/include/',
+        './src',
+        "<!@(node -p \"require('node-addon-api').include\")"
+      ],
       'ldflags': [
         '-Wl,-z,now',
       ],
@@ -79,7 +88,6 @@
         }]
       ],
       'cflags_cc': [
-          '<@(system_includes)',
           '<@(compiler_checks)'
       ],
       'xcode_settings': {
@@ -87,7 +95,6 @@
           '-Wl,-bind_at_load'
         ],
         'OTHER_CPLUSPLUSFLAGS': [
-            '<@(system_includes)',
             '<@(compiler_checks)'
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
