@@ -34,7 +34,7 @@ matrix:
   include:
     # linux publishable node v10/release
     - os: linux
-      env: BUILDTYPE=release
+      env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi"
       node_js: 10
     # linux publishable node v10/debug
     - os: linux
@@ -53,7 +53,7 @@ matrix:
       osx_image: xcode11
       env: BUILDTYPE=release
       node_js: 12
-    # Sanitizer build node v10/Debug
+    # Linux sanitizer build node v10/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=asan
       node_js: 10
