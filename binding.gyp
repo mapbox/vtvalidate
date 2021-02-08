@@ -6,10 +6,10 @@
       # Use this variable to silence warnings from mason dependencies
       # It's a variable to make easy to pass to
       # cflags (linux) and xcode (mac)
-      #'system_includes': [
-      #  "-isystem <!@(node -p \"require('node-addon-api').include.slice(1,-1)\")",
-      #  "-isystem <(module_root_dir)/mason_packages/.link/include/"
-      #],
+      'system_includes': [
+        "-isystem <!@(node -p \"require('node-addon-api').include.slice(1,-1)\")",
+        "-isystem <(module_root_dir)/mason_packages/.link/include/"
+      ],
       # Flags we pass to the compiler to ensure the compiler
       # warns us about potentially buggy or dangerous code
       'compiler_checks': [
@@ -17,6 +17,7 @@
         '-Wextra',
         '-Weffc++',
         '-pedantic-errors',
+        '-Wconversion',
         '-Wshadow',
         '-Wfloat-equal',
         '-Wuninitialized',
@@ -71,11 +72,6 @@
         './src/module.cpp',
         './src/vtvalidate.cpp'
       ],
-      'include_dirs': [
-        './mason_packages/.link/include/',
-        './src',
-        "<!@(node -p \"require('node-addon-api').include\")"
-      ],
       'ldflags': [
         '-Wl,-z,now',
       ],
@@ -88,6 +84,7 @@
         }]
       ],
       'cflags_cc': [
+          '<@(system_includes)',
           '<@(compiler_checks)'
       ],
       'xcode_settings': {
@@ -95,6 +92,7 @@
           '-Wl,-bind_at_load'
         ],
         'OTHER_CPLUSPLUSFLAGS': [
+            '<@(system_includes)',
             '<@(compiler_checks)'
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
