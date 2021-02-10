@@ -3,6 +3,7 @@
 - N-API (`node-addon-api`)
 - Binaries are now compiled with clang 10.x
 - Updated mason and node_modules
+- Upgrade to `mapbox/node-pre-gyp@1.x`
 
 ## v0.2.3
 
