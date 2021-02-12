@@ -1,5 +1,4 @@
 #include "vtvalidate.hpp"
-#include "utils.hpp"
 // gzip
 #include <gzip/compress.hpp>
 #include <gzip/decompress.hpp>
@@ -125,12 +124,12 @@ Napi::Value isValid(Napi::CallbackInfo const& info) {
 
     if (info.Length() != 2) {
         Napi::TypeError::New(env, "wrong number of arguments").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     // Check second argument, should be a 'callback' function.
     if (!info[1].IsFunction()) {
         Napi::TypeError::New(env, "second arg \"callback\" must be a function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Function callback = info[1].As<Napi::Function>();
@@ -138,13 +137,15 @@ Napi::Value isValid(Napi::CallbackInfo const& info) {
     // BUFFER: check first argument, should be a pbf object
     Napi::Object buffer_obj = info[0].As<Napi::Object>();
     if (buffer_obj.IsNull() || buffer_obj.IsUndefined()) {
-        return utils::CallbackError("first arg is empty", info);
+        Napi::TypeError::New(env, "first arg is empty").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
     if (!buffer_obj.IsBuffer()) {
-        return utils::CallbackError("first arg \"buffer\" must be a Protobuf object", info);
+        Napi::TypeError::New(env, "first arg \"buffer\" must be a Protobuf object").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
-    Napi::Buffer<char> buffer = buffer_obj.As<Napi::Buffer<char>>();
 
+    Napi::Buffer<char> buffer = buffer_obj.As<Napi::Buffer<char>>();
     auto worker = new AsyncValidateWorker(buffer, callback);
     worker->Queue();
     return env.Undefined();
