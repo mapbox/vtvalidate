@@ -2,7 +2,7 @@
   'target_defaults': {
     'default_configuration': 'Release',
     'cflags_cc' : [
-      '-std=c++11',
+      '-std=c++14',
       # The assumption is that projects based on node-cpp-skel will also
       # depend on mason packages. Currently (this will change in future mason versions)
       # mason packages default to being built/linked with the CXX11_ABI=0.
@@ -37,11 +37,20 @@
         'defines': [
           'NDEBUG'
         ],
+        'cflags': [
+         '-flto'
+        ],
+        'ldflags': [
+         '-flto',
+         '-fuse-ld=<(module_root_dir)/mason_packages/.link/bin/ld'
+        ],
         'xcode_settings': {
           'OTHER_CPLUSPLUSFLAGS!': [
             '-Os',
             '-O2'
           ],
+          'OTHER_LDFLAGS':[ '-flto' ],
+          'OTHER_CPLUSPLUSFLAGS': [ '-flto' ],
           'GCC_OPTIMIZATION_LEVEL': '3',
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
           'DEAD_CODE_STRIPPING': 'YES',

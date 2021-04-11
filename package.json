@@ -1,6 +1,6 @@
 {
   "name": "@mapbox/vtvalidate",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Simply checks if a vector tile contains valid/invalid geometries",
   "url": "http://github.com/mapbox/vtvalidate",
   "main": "./lib/index.js",
@@ -16,16 +16,17 @@
   "author": "Mapbox",
   "license": "ISC",
   "dependencies": {
-    "nan": "~2.10.0",
-    "node-pre-gyp": "~0.10.1"
+    "@mapbox/mason-js": "^0.1.5",
+    "@mapbox/node-pre-gyp": "^1.x",
+    "node-addon-api": "^3.1.0"
   },
   "devDependencies": {
     "@mapbox/mvt-fixtures": "~3.5.0",
     "aws-sdk": "^2.4.7",
-    "tape": "^4.5.1",
+    "bytes": "^2.4.0",
     "d3-queue": "^3.0.1",
     "minimist": "~1.2.0",
-    "bytes": "^2.4.0"
+    "tape": "^4.5.1"
   },
   "bin": {
     "vtvalidate": "./bin/vtvalidate.js"
@@ -35,6 +36,6 @@
     "module_path": "./lib/binding/",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
     "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
-    "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
+    "package_name": "{platform}-{arch}.tar.gz"
   }
 }
