@@ -141,9 +141,11 @@ matrix:
         - mason install llvm-cov ${MASON_LLVM_RELEASE}
         - mason link llvm-cov ${MASON_LLVM_RELEASE}
         - which llvm-cov
-        - curl -S -f https://codecov.io/bash -o codecov
-        - chmod +x codecov
-        - ./codecov -x "llvm-cov gcov" -Z
+#         - NOTE: we are disabling the codecov bash uploader due to https://about.codecov.io/security-update/
+# +       - This should be replaced with the node uploader in the future
+#         - curl -S -f https://codecov.io/bash -o codecov
+#         - chmod +x codecov
+#         - ./codecov -x "llvm-cov gcov" -Z
     # Clang format build
     - os: linux
       # can be generic since we don't need nodejs to run formatting
