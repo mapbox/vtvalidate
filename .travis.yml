@@ -1,12 +1,13 @@
 language: node_js
+dist: bionic
 
-node_js: 12
+node_js: 16
 
 # enable c++11/14 builds
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-5-dev' ]
+    packages: [ 'libstdc++-5-dev', 'python3.6' ]
 
 install:
   - node -v
@@ -34,35 +35,38 @@ script:
 # run your tests and build binaries
 matrix:
   include:
-    # linux cfi publishable node release
+    # linux cfi build
     - os: linux
-      env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi"
+      env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi" PYTHON=3.6
     # linux publishable node release
     - os: linux
-      env: BUILDTYPE=release
+      env: BUILDTYPE=release PYTHON=3.6
     # linux publishable node debug
     - os: linux
-      env: BUILDTYPE=debug
-    # osx publishable node
+      env: BUILDTYPE=debug PYTHON=3.6
+    # osx publishable node release
     - os: osx
       osx_image: xcode11
       env: BUILDTYPE=release
-    # Linux sanitizer build node Debug
+    # osx publishable node asan
+    - os: osx
+      osx_image: xcode11
+      env: BUILDTYPE=debug TOOLSET=asan
+      sudo: required
+    # Linux sanitizer build
     - os: linux
       env: BUILDTYPE=debug TOOLSET=asan
       sudo: required
       # Overrides `install` to set up custom asan flags
       install:
         - make sanitize
-      before_script:
-        - true
-
+      before_script: true
 
     ## ** Builds that do not get published ** 
 
     # g++ build (default builds all use clang++)
     - os: linux
-      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm" CXXFLAGS="-fext-numeric-literals"
+      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm" CXXFLAGS="-fext-numeric-literals" PYTHON=3.6
       addons:
         apt:
           sources:
@@ -81,7 +85,7 @@ matrix:
         - true
     # Coverage build
     - os: linux
-      env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
+      env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage" PYTHON=3.6
       # Overrides `script` to publish coverage data to codecov
       script:
         - export PATH=$(pwd)/mason_packages/.link/bin/:${PATH}
