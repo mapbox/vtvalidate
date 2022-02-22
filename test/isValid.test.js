@@ -5,7 +5,7 @@ var module = require('../lib/index.js');
 var mvtf = require('@mapbox/mvt-fixtures');
 var mvtfixtures = path.resolve(__dirname, '..', 'node_modules', '@mapbox', 'mvt-fixtures');
 
-test('success: valid tile', function(t) {
+test('success: valid tile', (t)=> {
   var buffer = mvtf.get('043').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -14,7 +14,7 @@ test('success: valid tile', function(t) {
   });
 });
 
-test('success: all property types', function(t) {
+test('success: all property types', (t)=> {
   var buffer = mvtf.get('038').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -23,7 +23,7 @@ test('success: all property types', function(t) {
   });
 });
 
-test('success: valid linestring', function(t) {
+test('success: valid linestring', (t)=> {
   var buffer = mvtf.get('018').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -32,7 +32,7 @@ test('success: valid linestring', function(t) {
   });
 });
 
-test('success: valid ring', function(t) {
+test('success: valid ring', (t)=> {
   var buffer = mvtf.get('022').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -41,7 +41,7 @@ test('success: valid ring', function(t) {
   });
 });
 
-test('success: valid zlib compressed', function(t) {
+test('success: valid zlib compressed', (t)=> {
   var buffer = fs.readFileSync(__dirname + '/fixtures/zlib-compressed');
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -50,7 +50,7 @@ test('success: valid zlib compressed', function(t) {
   });
 });
 
-test('success: valid gzip compressed', function(t) {
+test('success: valid gzip compressed', (t)=> {
   var buffer = fs.readFileSync(mvtfixtures + '/real-world/compressed/14-9384-9577.mvt.gz');
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -59,42 +59,43 @@ test('success: valid gzip compressed', function(t) {
   });
 });
 
-test('failure: invalid arg type', function(t) {
-  module.isValid('woops', function(err, result) {
-    t.ok(err)
-    t.equal(err.message, 'first arg \"buffer\" must be a Protobuf object');
-    t.end();
-  });
+test('failure: wrong number of arguments: 0 ', (t)=> {
+  t.throws(()=>{module.isValid();}, /wrong number of arguments/);
+  t.end();
 });
 
-test('failure: invalid arg type', function(t) {
-  module.isValid(null, function(err, result) {
-    t.ok(err)
-    t.equal(err.message, 'first arg is empty');
-    t.end();
-  });
+test('failure: wrong number of arguments: 1', (t)=> {
+  t.throws(()=>{module.isValid(1);}, /wrong number of arguments/);
+  t.end();
 });
 
-test('failure: invalid arg type', function(t) {
-  module.isValid(undefined, function(err, result) {
-    t.ok(err)
-    t.equal(err.message, 'first arg is empty');
-    t.end();
-  });
+test('failure: wrong number of arguments: 3 ', (t)=> {
+  t.throws(()=>{module.isValid(1,2,3);}, /wrong number of arguments/);
+  t.end();
 });
 
-test('failure: missing callback', function(t) {
+test('failure: invalid arg type', (t)=> {
+  t.throws(()=> {module.isValid('woops', function(err, result) {})}, /first arg \"buffer\" must be a Protobuf object/);
+  t.end();
+});
+
+test('failure: invalid arg type', (t)=> {
+  t.throws(()=>{module.isValid(null, function(err, result) {});}, /first arg is empty/);
+  t.end();
+});
+
+test('failure: invalid arg type', (t)=> {
+  t.throws(()=>{module.isValid(undefined, function(err, result) {});}, /first arg is empty/);
+  t.end();
+});
+
+test('failure: missing callback', (t)=> {
   var buffer = mvtf.get('043').buffer;
-  try {
-    module.isValid(buffer);
-  } catch(err) {
-    t.ok(err)
-    t.equal(err.message, 'second arg \"callback\" must be a function');
-    t.end();
-  }
+  t.throws(()=>{module.isValid(buffer, 123);}, /second arg \"callback\" must be a function/);
+  t.end();
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('003').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -103,7 +104,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('004').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -112,7 +113,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: valid v1 tile, but invalid v2', function(t) {
+test('success: valid v1 tile, but invalid v2', (t)=> {
   var buffer = mvtf.get('061').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -121,7 +122,7 @@ test('success: valid v1 tile, but invalid v2', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('005').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -130,7 +131,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('006').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -139,7 +140,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('007').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -148,7 +149,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('008').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -157,7 +158,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('011').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -166,7 +167,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('012').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -175,7 +176,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('013').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -184,7 +185,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('014').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -193,7 +194,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('023').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -202,7 +203,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('030').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -211,7 +212,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('040').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -220,7 +221,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('041').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -229,7 +230,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('042').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
@@ -238,7 +239,7 @@ test('success: invalid tile', function(t) {
   });
 });
 
-test('success: invalid tile', function(t) {
+test('success: invalid tile', (t)=> {
   var buffer = mvtf.get('044').buffer;
   module.isValid(buffer, function(err, result) {
     if (err) throw err;
