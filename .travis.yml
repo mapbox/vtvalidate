@@ -5,7 +5,7 @@ dist: bionic
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-5-dev', 'python3.6' ]
+    packages: [ 'libstdc++-6-dev' ]
 
 install:
   - node -v
@@ -35,13 +35,13 @@ matrix:
   include:
     # linux cfi build
     - os: linux
-      env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi" PYTHON=3.6
+      env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi"
     # linux publishable node release
     - os: linux
-      env: BUILDTYPE=release PYTHON=3.6
+      env: BUILDTYPE=release
     # linux publishable node debug
     - os: linux
-      env: BUILDTYPE=debug PYTHON=3.6
+      env: BUILDTYPE=debug
     # osx publishable node release
     - os: osx
       osx_image: xcode11
@@ -64,7 +64,7 @@ matrix:
 
     # g++ build (default builds all use clang++)
     - os: linux
-      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm" CXXFLAGS="-fext-numeric-literals" PYTHON=3.6
+      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"  LINK="g++-6" AR="ar" NM="nm" CXXFLAGS="-fext-numeric-literals"
       addons:
         apt:
           sources:
@@ -83,7 +83,7 @@ matrix:
         - true
     # Coverage build
     - os: linux
-      env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage" PYTHON=3.6
+      env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
       # Overrides `script` to publish coverage data to codecov
       script:
         - export PATH=$(pwd)/mason_packages/.link/bin/:${PATH}
