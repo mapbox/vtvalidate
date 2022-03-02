@@ -1,6 +1,6 @@
 {
   "name": "@mapbox/vtvalidate",
-  "version": "0.3.1-alpha.1",
+  "version": "0.3.1",
   "description": "Simply checks if a vector tile contains valid/invalid geometries",
   "url": "http://github.com/mapbox/vtvalidate",
   "main": "./lib/index.js",
