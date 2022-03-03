@@ -1,12 +1,11 @@
 language: node_js
-
-node_js: 12
+dist: bionic
 
 # enable c++11/14 builds
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-5-dev' ]
+    packages: [ 'libstdc++-6-dev' ]
 
 install:
   - node -v
@@ -34,7 +33,7 @@ script:
 # run your tests and build binaries
 matrix:
   include:
-    # linux cfi publishable node release
+    # linux cfi build
     - os: linux
       env: BUILDTYPE=release TOOLSET=cfi CXXFLAGS="-fsanitize=cfi -fvisibility=hidden" LDFLAGS="-fsanitize=cfi"
     # linux publishable node release
@@ -43,20 +42,23 @@ matrix:
     # linux publishable node debug
     - os: linux
       env: BUILDTYPE=debug
-    # osx publishable node
+    # osx publishable node release
     - os: osx
       osx_image: xcode11
       env: BUILDTYPE=release
-    # Linux sanitizer build node Debug
+    # osx publishable node asan
+    - os: osx
+      osx_image: xcode11
+      env: BUILDTYPE=debug TOOLSET=asan
+      sudo: required
+    # Linux sanitizer build
     - os: linux
       env: BUILDTYPE=debug TOOLSET=asan
       sudo: required
       # Overrides `install` to set up custom asan flags
       install:
         - make sanitize
-      before_script:
-        - true
-
+      before_script: true
 
     ## ** Builds that do not get published ** 
 
